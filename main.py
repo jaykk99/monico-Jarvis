@@ -1,15 +1,10 @@
 from fastapi import FastAPI
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-app = FastAPI(title='Monico-Jarvis')
+app = FastAPI()
 
 @app.get('/')
-def root():
-    return {'status': 'Monico Jarvis is alive in the cloud! Say "Hey Monico" to start.'}
+def home():
+    return {'message': 'Monico Jarvis is alive in the cloud! Say your command.'}
 
-if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+@app.post('/chat')
+def chat(query: str):
+    return {'response': f'Monico here. Processing: {query}. (Full agent coming online)'}

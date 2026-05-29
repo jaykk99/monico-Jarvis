@@ -1,0 +1,8 @@
+app = 'monico-jarvis'
+[build]
+  image = 'docker.io/library/python:3.12'
+
+[[services]]
+  http_checks = ['/']
+  internal_port = 8000
+  protocol = 'tcp'

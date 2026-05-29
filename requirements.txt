@@ -2,6 +2,7 @@ fastapi
 uvicorn
 langgraph
 langchain
+langchain-community
 playwright
+ollama
 python-dotenv
-httpx
