@@ -1,6 +1,7 @@
 app = 'monico-jarvis'
+
+# Build from the Dockerfile in this repo (runs uvicorn on port 8000).
 [build]
-  image = 'docker.io/library/python:3.12'
 
 [[services]]
   http_checks = ['/']
