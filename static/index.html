@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monico Jarvis — Console</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="bg-grid"></div>
+
+<header>
+  <div class="brand">
+    <div class="core"><span></span></div>
+    <div>
+      <h1>MONICO JARVIS</h1>
+      <p id="status-line"><span class="dot"></span> initializing…</p>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+  <section id="wave-wrap">
+    <canvas id="wave"></canvas>
+    <div id="wave-label">LISTENING</div>
+  </section>
+
+  <section id="log" aria-live="polite"></section>
+
+  <section id="hints"></section>
+
+  <form id="composer" autocomplete="off">
+    <button type="button" id="mic" title="Voice input (browser speech recognition)">🎙</button>
+    <input id="input" type="text" placeholder="Speak or type a command… try &quot;help&quot;" maxlength="2000">
+    <button type="submit" id="send">SEND</button>
+  </form>
+
+  <div class="toggles">
+    <label><input type="checkbox" id="tts"> voice replies</label>
+    <span id="caps-link">type <b>help</b> for commands · honest capability list in the panel</span>
+  </div>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

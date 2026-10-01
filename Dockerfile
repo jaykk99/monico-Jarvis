@@ -6,6 +6,9 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main.py agent.py ./
+COPY skills/ ./skills/
+COPY static/ ./static/
+COPY api/ ./api/
 
 EXPOSE 8000
 
