@@ -29,6 +29,13 @@ see `GET /capabilities`.
 - `calc <expr>` — safe arithmetic (AST-based, no `eval`; e.g. `calc (12+8)*3`)
 - `echo <text>` — repeat back
 - `note <text>` / `notes` / `note clear` — quick notes persisted to `data/` (override with `MONICO_DATA_DIR`)
+- `timer <5m|30s|1h> [label]` / `timers` / `timer clear` — countdown timers, checked with `timers`
+- `dice [sides]` / `dice 2d6` — roll dice
+- `coin` — flip a coin
+- `password [length]` — secure random password (never saved)
+- `convert <value> <from> to <to>` — length (mm/cm/m/km/in/ft/yd/mi), weight (g/kg/oz/lb), temp (c/f/k)
+- `todo <text>` / `todos` / `todo done <n>` / `todo del <n>` / `todo clear` — todo list persisted to `data/`
+- `weather` — honest: needs a weather API key, not available in keyless mode
 - `status` — uptime + skill count
 - `help` — list commands
 

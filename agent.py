@@ -18,7 +18,7 @@ BOOT_TIME = _time.time()
 
 _FALLBACK_SUGGESTIONS = (
     "I don't have a skill for that yet. Try `help` to see what I can do, "
-    "or one of: time, date, calc, echo, note, status."
+    "or one of: time, calc, timer, todo, convert, dice, coin, password, note, status."
 )
 
 

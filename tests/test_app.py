@@ -18,7 +18,7 @@ def test_console_serves_html():
     r = client.get("/")
     assert r.status_code == 200
     assert "text/html" in r.headers["content-type"]
-    assert "MONICO JARVIS" in r.text
+    assert "JARVIS" in r.text
 
 
 def test_static_assets():

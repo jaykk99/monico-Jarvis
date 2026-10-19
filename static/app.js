@@ -1,4 +1,4 @@
-/* Monico Jarvis console: chat, voice wave, mic input, optional TTS. */
+/* Jarvis console: chat, voice wave, mic with honest capability detection, TTS. */
 (function () {
   "use strict";
 
@@ -6,11 +6,26 @@
   var form = document.getElementById("composer");
   var input = document.getElementById("input");
   var micBtn = document.getElementById("mic");
+  var voiceNote = document.getElementById("voice-note");
   var ttsBox = document.getElementById("tts");
-  var statusLine = document.getElementById("status-line");
+  var statusText = document.getElementById("status-text");
+  var sideStatus = document.getElementById("side-status");
+  var topbarDot = document.getElementById("topbar-dot");
+  var topbarStatus = document.getElementById("topbar-status");
   var chips = document.getElementById("chips");
   var hintsBox = document.getElementById("hints");
+  var skillGrid = document.getElementById("skill-grid");
   var waveLabel = document.getElementById("wave-label");
+  var sidebar = document.getElementById("sidebar");
+  var scrim = document.getElementById("side-scrim");
+
+  /* ------------------------------------------------ sidebar (mobile drawer) */
+  function openSide() { sidebar.classList.add("open"); scrim.classList.add("open"); }
+  function closeSide() { sidebar.classList.remove("open"); scrim.classList.remove("open"); }
+  document.getElementById("menu-btn").addEventListener("click", openSide);
+  document.getElementById("side-close").addEventListener("click", closeSide);
+  scrim.addEventListener("click", closeSide);
+  document.getElementById("help-btn").addEventListener("click", function () { send("help"); });
 
   /* ------------------------------------------------ voice wave canvas */
   var canvas = document.getElementById("wave");
@@ -19,8 +34,9 @@
 
   function sizeCanvas() {
     var r = canvas.getBoundingClientRect();
-    canvas.width = Math.max(300, r.width * devicePixelRatio);
-    canvas.height = 120 * devicePixelRatio;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(300, r.width * dpr);
+    canvas.height = 84 * dpr;
   }
   window.addEventListener("resize", sizeCanvas);
   sizeCanvas();
@@ -29,13 +45,14 @@
     t += 0.045;
     energy += (targetEnergy - energy) * 0.06;
     var w = canvas.width, h = canvas.height, mid = h / 2;
+    var dpr = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, w, h);
-    ctx.lineWidth = 2 * devicePixelRatio;
+    ctx.lineWidth = 2 * dpr;
     for (var pass = 0; pass < 3; pass++) {
       var amp = (h * 0.38 * energy) / (pass + 1);
       ctx.strokeStyle = pass === 0
-        ? "rgba(0,229,255,.9)"
-        : "rgba(0,229,255," + (0.35 - pass * 0.12) + ")";
+        ? "rgba(34,211,238,.9)"
+        : "rgba(34,211,238," + (0.35 - pass * 0.12) + ")";
       ctx.beginPath();
       for (var x = 0; x <= w; x += 4) {
         var y = mid
@@ -45,14 +62,6 @@
       }
       ctx.stroke();
     }
-    // scan line
-    var sx = ((t * 60) % (w + 80)) - 40;
-    var grad = ctx.createLinearGradient(sx - 40, 0, sx + 40, 0);
-    grad.addColorStop(0, "rgba(0,229,255,0)");
-    grad.addColorStop(0.5, "rgba(0,229,255,.18)");
-    grad.addColorStop(1, "rgba(0,229,255,0)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(sx - 40, 0, 80, h);
     requestAnimationFrame(drawWave);
   }
   drawWave();
@@ -60,6 +69,17 @@
   function spike() { targetEnergy = 1; setTimeout(function () { targetEnergy = 0.25; }, 900); }
 
   /* ------------------------------------------------ messages */
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function rich(text) {
+    // light markdown: `code` and **bold**
+    var h = esc(text);
+    h = h.replace(/`([^`]+)`/g, "<code>$1</code>");
+    h = h.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    return h;
+  }
+
   function addMsg(text, who, skill) {
     var div = document.createElement("div");
     div.className = "msg " + who;
@@ -85,14 +105,16 @@
     var cursor = document.createElement("span");
     cursor.className = "cursor";
     cursor.textContent = "▍";
+    var html = rich(text);
     (function tick() {
       if (i < text.length) {
+        // type plain, then swap to rich html at the end (keeps markup safe)
         el.textContent = text.slice(0, i + 2);
         el.appendChild(cursor);
         i += 2;
-        setTimeout(tick, 8);
+        setTimeout(tick, 7);
       } else {
-        el.textContent = text;
+        el.innerHTML = html;
       }
     })();
   }
@@ -101,7 +123,7 @@
     if (!ttsBox.checked || !("speechSynthesis" in window)) return;
     try {
       speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(text.slice(0, 400));
+      var u = new SpeechSynthesisUtterance(text.replace(/[*`]/g, "").slice(0, 400));
       u.rate = 1.05;
       speechSynthesis.speak(u);
     } catch (e) { /* TTS unavailable — stay silent */ }
@@ -116,8 +138,7 @@
     spike();
     addMsg(text, "user");
     input.value = "";
-    waveLabel.textContent = "PROCESSING";
-    waveLabel.classList.add("live");
+    setWave("PROCESSING", true);
 
     fetch("/chat", {
       method: "POST",
@@ -138,10 +159,14 @@
       })
       .finally(function () {
         busy = false;
-        waveLabel.textContent = "LISTENING";
-        waveLabel.classList.remove("live");
+        setWave("READY", false);
         input.focus();
       });
+  }
+
+  function setWave(label, live) {
+    waveLabel.textContent = label;
+    waveLabel.classList.toggle("live", !!live);
   }
 
   form.addEventListener("submit", function (e) {
@@ -149,51 +174,163 @@
     send(input.value);
   });
 
-  /* ------------------------------------------------ mic (Web Speech API) */
+  /* ------------------------------------------------ voice input: honest capability detection */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   var rec = null;
+  var listening = false;
+
+  function showVoiceNote(html) {
+    voiceNote.innerHTML = html;
+    voiceNote.hidden = false;
+  }
+  function hideVoiceNote() { voiceNote.hidden = true; }
+
+  function voiceWhyNot() {
+    // Explain precisely why voice transcription is unavailable.
+    var reasons = [];
+    if (!SR) {
+      reasons.push("this browser has no speech-recognition engine (Web Speech API missing)");
+    }
+    if (!window.isSecureContext) {
+      reasons.push("the page isn't on HTTPS or localhost — browsers block mic access on plain HTTP");
+    }
+    if (location.protocol === "http:" && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+      reasons.push("you're on plain HTTP — serve over HTTPS or use localhost");
+    }
+    var ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/.test(ua) && !/CriOS|FxiOS/.test(ua)) {
+      reasons.push("iOS Safari only supports it in limited contexts");
+    }
+    if (!reasons.length) reasons.push("unknown — the browser refused to start recognition");
+    return reasons;
+  }
+
+  var VOICE_ERRORS = {
+    "not-allowed": "Mic blocked — allow microphone access in the browser prompt, then tap the mic again.",
+    "service-not-allowed": "Mic blocked — allow microphone access, then try again.",
+    "no-speech": "Didn't hear anything — try again, a bit louder.",
+    "audio-capture": "No microphone found on this device.",
+    "network": "Speech service unreachable — check your connection and try again.",
+    "aborted": "Listening stopped.",
+    "language-not-supported": "This language isn't supported by the recognizer."
+  };
+
+  function setMicState(state, title) {
+    micBtn.classList.toggle("rec", state === "rec");
+    micBtn.classList.toggle("unsupported", state === "unsupported");
+    if (title) micBtn.title = title;
+  }
+
   if (SR) {
-    rec = new SR();
-    rec.lang = "en-US";
-    rec.interimResults = false;
-    rec.onresult = function (e) {
-      var said = e.results[0][0].transcript;
-      input.value = said;
-      send(said);
-    };
-    rec.onend = function () { micBtn.classList.remove("rec"); };
-    rec.onerror = function () { micBtn.classList.remove("rec"); };
-    micBtn.addEventListener("click", function () {
-      try {
-        if (micBtn.classList.contains("rec")) { rec.stop(); return; }
-        micBtn.classList.add("rec");
-        rec.start();
-      } catch (e) { micBtn.classList.remove("rec"); }
-    });
+    try {
+      rec = new SR();
+      rec.lang = "en-US";
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      rec.onresult = function (e) {
+        var said = e.results[0][0].transcript;
+        hideVoiceNote();
+        input.value = said;
+        send(said);
+      };
+      rec.onend = function () {
+        listening = false;
+        setMicState("idle", "Voice input — tap to speak");
+        setWave("READY", false);
+      };
+      rec.onerror = function (e) {
+        listening = false;
+        setMicState("idle", "Voice input — tap to speak");
+        setWave("READY", false);
+        var msg = VOICE_ERRORS[e.error] || ("Voice error: " + e.error + " — type instead.");
+        if (e.error === "not-allowed" || e.error === "service-not-allowed" || e.error === "audio-capture") {
+          showVoiceNote("<strong>Voice input blocked.</strong> " + msg);
+        } else if (e.error !== "aborted" && e.error !== "no-speech") {
+          showVoiceNote(msg);
+        }
+      };
+      micBtn.addEventListener("click", function () {
+        hideVoiceNote();
+        try {
+          if (listening) { rec.stop(); return; }
+          if (!window.isSecureContext) {
+            showVoiceNote("<strong>Voice needs a secure page.</strong> Browsers block the mic on plain HTTP — use HTTPS or localhost, or just type.");
+            return;
+          }
+          listening = true;
+          setMicState("rec", "Listening — tap to stop");
+          setWave("LISTENING", true);
+          rec.start();
+        } catch (e) {
+          listening = false;
+          setMicState("idle", "Voice input — tap to speak");
+          showVoiceNote("<strong>Couldn't start listening.</strong> " + (e.message || "Type instead."));
+        }
+      });
+      setMicState("idle", "Voice input — tap to speak");
+    } catch (e) {
+      voiceUnsupported("setup failed: " + e.message);
+    }
   } else {
-    micBtn.style.opacity = "0.35";
-    micBtn.title = "Voice input not supported in this browser";
+    voiceUnsupported();
+  }
+
+  function voiceUnsupported(extra) {
+    setMicState("unsupported", "Voice transcription unavailable — tap for details");
     micBtn.addEventListener("click", function () {
-      addMsg("Voice input isn't supported in this browser — type instead.", "jarvis", "system");
+      var reasons = voiceWhyNot();
+      if (extra) reasons.push(extra);
+      showVoiceNote(
+        "<strong>Voice transcription isn't available here.</strong><br>" +
+        reasons.map(function (r) { return "• " + r; }).join("<br>") +
+        "<br>Typing works everywhere — go ahead."
+      );
     });
   }
 
   /* ------------------------------------------------ boot: status + skills */
+  function setStatus(online, text) {
+    statusText.textContent = text;
+    topbarStatus.textContent = online ? "Jarvis · online" : "Jarvis · offline";
+    var dot = sideStatus.querySelector(".dot");
+    if (dot) dot.classList.toggle("off", !online);
+    topbarDot.classList.toggle("off", !online);
+  }
+
   function boot() {
     fetch("/health").then(function (r) { return r.json(); }).then(function (h) {
-      statusLine.innerHTML = '<span class="dot"></span> online · v' + (h.version || "?");
-      var c = document.createElement("span");
-      c.className = "chip on"; c.textContent = "online";
-      chips.appendChild(c);
-      var k = document.createElement("span");
-      k.className = "chip on"; k.textContent = "keyless";
-      chips.appendChild(k);
+      setStatus(true, "online · v" + (h.version || "?"));
+      [["online", 1], ["keyless", 1], ["local", 1]].forEach(function (c) {
+        var s = document.createElement("span");
+        s.className = "chip on"; s.textContent = c[0];
+        chips.appendChild(s);
+      });
     }).catch(function () {
-      statusLine.innerHTML = '<span class="dot" style="background:#ff5470;box-shadow:0 0 10px #ff5470"></span> offline';
+      setStatus(false, "offline — server down?");
     });
 
     fetch("/skills").then(function (r) { return r.json(); }).then(function (d) {
-      (d.skills || []).forEach(function (s) {
+      var skills = d.skills || [];
+      // sidebar grid
+      skills.forEach(function (s) {
+        var card = document.createElement("button");
+        card.type = "button";
+        card.className = "skill-card";
+        var nm = document.createElement("span");
+        nm.className = "sk-name"; nm.textContent = s.name;
+        var ds = document.createElement("span");
+        ds.className = "sk-desc"; ds.textContent = s.description;
+        card.appendChild(nm); card.appendChild(ds);
+        card.title = s.usage;
+        card.addEventListener("click", function () {
+          closeSide();
+          if (s.examples && s.examples.length) send(s.examples[0]);
+          else { input.value = s.name + " "; input.focus(); }
+        });
+        skillGrid.appendChild(card);
+      });
+      // hint chips under the log
+      skills.forEach(function (s) {
         if (!s.examples || !s.examples.length) return;
         var b = document.createElement("button");
         b.type = "button";
@@ -202,7 +339,11 @@
         b.addEventListener("click", function () { send(s.examples[0]); });
         hintsBox.appendChild(b);
       });
-      addMsg("Systems online. All skills running local — no keys, no cloud calls. Try a command below, or speak.", "jarvis", "boot");
+      addMsg(
+        "Systems online. Every skill runs on this box — no keys, no cloud calls.\n" +
+        "Tap a skill on the left or type `help` for the full list.",
+        "jarvis", "boot"
+      );
     }).catch(function () {
       addMsg("Core unreachable — check the server.", "jarvis", "error");
     });
