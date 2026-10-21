@@ -286,3 +286,68 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ------------------------------------------------ new console features */
+
+/* light theme: same variables, bright values */
+[data-theme="light"] {
+  --bg: #f4f6fa;
+  --bg-soft: #eef1f6;
+  --panel: #ffffff;
+  --panel-2: #e9edf3;
+  --border: rgba(10, 20, 40, 0.1);
+  --border-soft: rgba(10, 20, 40, 0.06);
+  --accent: #0891b2;
+  --accent-dim: rgba(8, 145, 178, 0.12);
+  --accent-glow: rgba(8, 145, 178, 0.3);
+  --text: #131a26;
+  --text-dim: #4b5568;
+  --muted: #8a94a6;
+  --danger: #e11d48;
+}
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(600px 300px at 15% -5%, rgba(8, 145, 178, 0.06), transparent 70%),
+    radial-gradient(500px 300px at 90% 110%, rgba(99, 102, 241, 0.05), transparent 70%);
+}
+
+.icon-btn {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-dim);
+  border-radius: 10px;
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.icon-btn:hover { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-dim); }
+
+.tts-voice {
+  max-width: 130px;
+  background: var(--panel);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 7px 8px;
+  flex-shrink: 1;
+}
+.tts-voice:focus { outline: none; border-color: var(--accent); }
+
+.skill-search {
+  width: 100%;
+  margin: 0 0 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.skill-search::placeholder { color: var(--muted); }
+.skill-search:focus { outline: none; border-color: var(--accent); }
+
+.msg .skill-tag { white-space: nowrap; }
+.msg[data-when] { position: relative; }

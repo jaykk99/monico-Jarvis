@@ -80,13 +80,15 @@
     return h;
   }
 
-  function addMsg(text, who, skill) {
+  function addMsg(text, who, skill, meta) {
     var div = document.createElement("div");
     div.className = "msg " + who;
+    div.dataset.plain = text; // raw text for chat export
+    div.dataset.when = new Date().toISOString();
     if (who === "jarvis") {
       var tag = document.createElement("span");
       tag.className = "skill-tag";
-      tag.textContent = "jarvis" + (skill ? " · " + skill : "");
+      tag.textContent = "jarvis" + (skill ? " · " + skill : "") + (meta ? " · " + meta : "");
       div.appendChild(tag);
       var body = document.createElement("span");
       div.appendChild(body);
@@ -125,9 +127,66 @@
       speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(text.replace(/[*`]/g, "").slice(0, 400));
       u.rate = 1.05;
+      var pick = ttsVoice.value;
+      if (pick) {
+        var v = speechSynthesis.getVoices().filter(function (vv) { return vv.name === pick; })[0];
+        if (v) u.voice = v;
+      }
       speechSynthesis.speak(u);
     } catch (e) { /* TTS unavailable — stay silent */ }
   }
+
+  /* TTS voice picker: populated from the browser's voice list, persisted. */
+  var ttsVoice = document.getElementById("tts-voice");
+  function fillVoices() {
+    if (!("speechSynthesis" in window)) return;
+    var voices = speechSynthesis.getVoices();
+    if (!voices.length) return;
+    ttsVoice.innerHTML = "";
+    voices.forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v.name;
+      o.textContent = v.name + (v.lang ? " (" + v.lang + ")" : "");
+      ttsVoice.appendChild(o);
+    });
+    var saved = null;
+    try { saved = localStorage.getItem("jarvis-tts-voice"); } catch (e) {}
+    if (saved) ttsVoice.value = saved;
+    ttsVoice.hidden = false;
+  }
+  if ("speechSynthesis" in window) {
+    fillVoices();
+    speechSynthesis.onvoiceschanged = fillVoices;
+    ttsVoice.addEventListener("change", function () {
+      try { localStorage.setItem("jarvis-tts-voice", ttsVoice.value); } catch (e) {}
+    });
+  }
+
+  /* ------------------------------------------------ command history */
+  var history = [];
+  try { history = JSON.parse(localStorage.getItem("jarvis-history") || "[]"); } catch (e) { history = []; }
+  var histIdx = -1;
+
+  function pushHistory(text) {
+    if (history[history.length - 1] === text) return;
+    history.push(text);
+    if (history.length > 100) history = history.slice(-100);
+    try { localStorage.setItem("jarvis-history", JSON.stringify(history)); } catch (e) {}
+    histIdx = -1;
+  }
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    if (!history.length) return;
+    e.preventDefault();
+    if (e.key === "ArrowUp") {
+      histIdx = histIdx < 0 ? history.length - 1 : Math.max(0, histIdx - 1);
+    } else {
+      histIdx = histIdx < 0 ? -1 : histIdx + 1;
+      if (histIdx >= history.length) histIdx = -1;
+    }
+    input.value = histIdx < 0 ? "" : history[histIdx];
+  });
 
   /* ------------------------------------------------ chat */
   var busy = false;
@@ -136,9 +195,11 @@
     if (!text || busy) return;
     busy = true;
     spike();
+    pushHistory(text);
     addMsg(text, "user");
     input.value = "";
     setWave("PROCESSING", true);
+    var t0 = performance.now();
 
     fetch("/chat", {
       method: "POST",
@@ -147,9 +208,10 @@
     })
       .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
       .then(function (res) {
+        var ms = Math.round(performance.now() - t0);
         var b = res.body || {};
         var reply = b.response || (b.error && b.error.message) || "No response.";
-        var div = addMsg(reply, "jarvis", b.skill);
+        var div = addMsg(reply, "jarvis", b.skill, ms + "ms");
         if (b.ok === false && !b.skill) div.classList.add("typing-err");
         speak(reply);
       })
@@ -348,6 +410,55 @@
       addMsg("Core unreachable — check the server.", "jarvis", "error");
     });
   }
+
+  /* ------------------------------------------------ theme (dark/light) */
+  var themeBtn = document.getElementById("theme-btn");
+  function applyTheme(name) {
+    document.documentElement.dataset.theme = name;
+    try { localStorage.setItem("jarvis-theme", name); } catch (e) {}
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = name === "light" ? "#f4f6fa" : "#08090d";
+  }
+  (function initTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem("jarvis-theme"); } catch (e) {}
+    applyTheme(saved === "light" ? "light" : "dark");
+  })();
+  themeBtn.addEventListener("click", function () {
+    applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+  });
+
+  /* ------------------------------------------------ export + clear chat */
+  document.getElementById("export-btn").addEventListener("click", function () {
+    var lines = [];
+    Array.prototype.forEach.call(log.children, function (div) {
+      var when = div.dataset.when ? new Date(div.dataset.when).toLocaleString() : "";
+      var who = div.classList.contains("user") ? "you" : "jarvis";
+      lines.push("[" + when + "] " + who + ": " + (div.dataset.plain || div.textContent));
+    });
+    var blob = new Blob([lines.join("\n\n") + "\n"], { type: "text/plain" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "jarvis-chat-" + new Date().toISOString().slice(0, 10) + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+
+  document.getElementById("clear-btn").addEventListener("click", function () {
+    log.innerHTML = "";
+    addMsg("Chat cleared. What next?", "jarvis", "console");
+  });
+
+  /* ------------------------------------------------ skill search filter */
+  var skillSearch = document.getElementById("skill-search");
+  skillSearch.addEventListener("input", function () {
+    var q = skillSearch.value.trim().toLowerCase();
+    Array.prototype.forEach.call(skillGrid.children, function (card) {
+      var hay = (card.textContent || "").toLowerCase();
+      card.style.display = !q || hay.indexOf(q) !== -1 ? "" : "none";
+    });
+  });
 
   boot();
 })();

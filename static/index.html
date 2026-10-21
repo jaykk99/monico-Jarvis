@@ -27,6 +27,8 @@
 
     <div class="side-section">
       <h2>Skills</h2>
+      <input id="skill-search" class="skill-search" type="search"
+             placeholder="filter skills…" aria-label="Filter skills" autocomplete="off">
       <div class="skill-grid" id="skill-grid"></div>
     </div>
 
@@ -50,6 +52,10 @@
         <input type="checkbox" id="tts">
         <span class="tts-pill">🔊 voice replies</span>
       </label>
+      <select id="tts-voice" class="tts-voice" title="Voice for spoken replies" hidden></select>
+      <button class="icon-btn" id="theme-btn" title="Toggle light/dark theme" aria-label="Toggle theme">◐</button>
+      <button class="icon-btn" id="export-btn" title="Download chat log" aria-label="Export chat">⤓</button>
+      <button class="icon-btn" id="clear-btn" title="Clear chat" aria-label="Clear chat">🧹</button>
     </header>
 
     <section class="wave-wrap" aria-hidden="true">
