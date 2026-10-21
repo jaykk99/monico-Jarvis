@@ -1,0 +1,23 @@
+# Local staging for monico-Jarvis: `docker compose up --build`, then open
+# http://localhost:8000 — the same image layout Fly/Railway/Render build.
+services:
+  jarvis:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MONICO_LOG_LEVEL: info
+      MONICO_RATE_LIMIT_PER_MIN: "120"
+    volumes:
+      - jarvis-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  jarvis-data:

@@ -22,13 +22,6 @@ class Skill:
     examples: list[str] = field(default_factory=list)
 
 
-@dataclass
-class SkillResult:
-    ok: bool
-    skill: str
-    response: str
-
-
 class SkillRegistry:
     def __init__(self) -> None:
         self._skills: list[Skill] = []

@@ -7,13 +7,16 @@ a plugin-style skill registry (see skills/).
 """
 from __future__ import annotations
 
+import logging
 import time as _time
 from typing import Any
 
 from skills.base import SkillRegistry
-from skills import builtin
+from skills import builtin, productivity, texttools
 
-VERSION = "2.0.0"
+log = logging.getLogger("monico-jarvis.agent")
+
+VERSION = "2.1.0"
 BOOT_TIME = _time.time()
 
 _FALLBACK_SUGGESTIONS = (
@@ -23,9 +26,14 @@ _FALLBACK_SUGGESTIONS = (
 
 
 class MonicoAgent:
-    def __init__(self) -> None:
+    def __init__(self, disabled: tuple[str, ...] = ()) -> None:
         self.registry = SkillRegistry()
         builtin.register_all(self.registry)
+        productivity.register_all(self.registry)
+        texttools.register_all(self.registry)
+        self.disabled = {d.lower() for d in disabled}
+        if self.disabled:
+            log.info("disabled skills: %s", sorted(self.disabled))
 
     def respond(self, text: str) -> dict[str, Any]:
         """Route one user message to a skill. Always returns a JSON-safe dict."""
@@ -34,7 +42,7 @@ class MonicoAgent:
         trigger = parts[0].lower() if parts else ""
         args = parts[1] if len(parts) > 1 else ""
         skill = self.registry.find(trigger)
-        if skill is None:
+        if skill is None or skill.name in self.disabled:
             return {
                 "ok": False,
                 "skill": "fallback",
@@ -59,11 +67,14 @@ class MonicoAgent:
                 "usage": s.usage,
                 "triggers": s.triggers,
                 "examples": s.examples,
+                "disabled": s.name in self.disabled,
             }
             for s in self.registry.all()
         ]
 
     def capabilities(self) -> dict[str, Any]:
+        skills = self.list_skills()
+        active = [s for s in skills if not s["disabled"]]
         return {
             "service": "monico-jarvis",
             "version": VERSION,
@@ -71,16 +82,27 @@ class MonicoAgent:
             "mode": "local-keyless",
             "network_calls": False,
             "api_keys_required": False,
-            "skills": self.list_skills(),
-            "implemented": [s["name"] for s in self.list_skills()],
+            "skills": skills,
+            "implemented": [s["name"] for s in active],
+            "disabled": sorted(self.disabled),
             "not_implemented": [
                 "LLM-backed conversation (needs a model key or local model — not bundled)",
                 "web browsing / search (no network in keyless mode)",
                 "smart-home or device control (no integrations configured)",
-                "scheduled reminders (no scheduler attached)",
+                "live currency/weather/stock prices (offline snapshots only — keyless)",
+                "push-notification reminders (no scheduler attached — use `reminders` to check)",
             ],
         }
 
 
-agent = MonicoAgent()
-print('Monico Jarvis initialized - ready for business tasks')
+def _disabled_from_env() -> tuple[str, ...]:
+    try:
+        from config import settings
+    except Exception:  # config importable in every normal path; stay safe
+        return ()
+    return tuple(settings.disabled_skills)
+
+
+agent = MonicoAgent(disabled=_disabled_from_env())
+log.info("Monico Jarvis v%s initialized — %d skills ready",
+         VERSION, len(agent.list_skills()))
