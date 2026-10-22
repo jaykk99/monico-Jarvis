@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.2.0 (2026-10-22) — utility skills + convert extensions
+
+**4 new keyless skills** (31 total) in `skills/utilities.py`:
+
+- `color` — hex ↔ RGB ↔ HSL conversions plus a curated named-color lookup
+  (`color #ff8800`, `color rgb 255 136 0`, `color hsl 32 100 50`, `color orange`)
+- `age` — age calculator: years/months/days, total days alive, next birthday
+  countdown; Feb 29 birthdays handled (`age 1990-05-01`)
+- `lorem` — lorem ipsum placeholder generator by paragraphs/sentences/words
+  (`lorem 2`, `lorem 3 sentences`, `lorem 50 words`)
+- `slug` — slugify text for URLs/filenames, accent-stripping
+  (`slug Hello World!` → `hello-world`)
+
+**Tests**: 63 → 89, all passing (`tests/test_utilities.py` covers every
+new skill).
+
 ## v2.1.0 (2026-10-20) — deploy-ready
 
 **Deploy readiness** (the repo's standing blocker was "never deployed"):

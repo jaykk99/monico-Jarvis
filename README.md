@@ -6,7 +6,7 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 ## Status
 
 Working app (v2.1.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (27 skills).
+chat commands through a real plugin-style skill registry (31 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 63 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 102 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -65,6 +65,13 @@ Productivity:
 - `days <date1> to <date2>` — days between dates (`2026-10-20 to 2026-12-25`)
 - `dateadd <date> <+|-><n>d` — add/subtract days (`dateadd today +30d`)
 - `currency <value> <from> to <to>` — offline snapshot rates, labeled with the snapshot date; **not live, verify before any real money move**
+
+Utilities:
+
+- `color <#hex|rgb r g b|hsl h s l|name>` — hex ↔ RGB ↔ HSL conversions (`color #ff8800`, `color orange`)
+- `age <birthdate>` — age in years/months/days, total days, next birthday (`age 1990-05-01`)
+- `lorem [n] [paragraphs|sentences|words]` — lorem ipsum placeholder text (`lorem 2`, `lorem 50 words`)
+- `slug <text>` — slugify for URLs/filenames (`slug Hello World!` → `hello-world`)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
