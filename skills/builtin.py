@@ -315,7 +315,36 @@ _LENGTH_TO_M = {
 _WEIGHT_TO_KG = {
     "g": 0.001, "kg": 1.0, "oz": 0.028349523125, "lb": 0.45359237, "lbs": 0.45359237,
 }
+# base unit: meters per second
+_SPEED_TO_MS = {
+    "ms": 1.0, "kmh": 0.2777777777777778, "mph": 0.44704, "knot": 0.514444,
+}
+# base unit: liter (US customary volume)
+_VOLUME_TO_L = {
+    "ml": 0.001, "l": 1.0, "floz": 0.0295735, "cup": 0.236588,
+    "pt": 0.473176, "qt": 0.946353, "gal": 3.78541,
+}
+# base unit: square meter
+_AREA_TO_M2 = {
+    "sqm": 1.0, "sqft": 0.092903, "acre": 4046.86, "ha": 10000.0,
+}
+# base unit: byte (SI decimal + binary kib/mib/gib/tib)
+_DATA_TO_B = {
+    "b": 1.0, "kb": 1000.0, "mb": 1000.0 ** 2, "gb": 1000.0 ** 3,
+    "tb": 1000.0 ** 4,
+    "kib": 1024.0, "mib": 1024.0 ** 2, "gib": 1024.0 ** 3,
+    "tib": 1024.0 ** 4,
+}
 _TEMP_UNITS = {"c", "f", "k", "celsius", "fahrenheit", "kelvin"}
+
+_CONVERT_CATEGORIES = (
+    ("length", _LENGTH_TO_M),
+    ("weight", _WEIGHT_TO_KG),
+    ("speed", _SPEED_TO_MS),
+    ("volume", _VOLUME_TO_L),
+    ("area", _AREA_TO_M2),
+    ("data", _DATA_TO_B),
+)
 
 _CONVERT_RE = re.compile(
     r"^\s*([-+]?\d+(?:\.\d+)?)\s*([a-zA-Z°]+)\s+(?:to\s+)?([a-zA-Z°]+)\s*$"
@@ -337,6 +366,24 @@ def _norm_unit(u: str) -> str:
         "kilogram": "kg", "kilograms": "kg", "kilo": "kg", "kilos": "kg",
         "ounce": "oz", "ounces": "oz",
         "pound": "lb", "pounds": "lb",
+        "kph": "kmh", "kilometersperhour": "kmh", "knots": "knot",
+        "milliliter": "ml", "milliliters": "ml", "millilitre": "ml", "millilitres": "ml",
+        "liter": "l", "liters": "l", "litre": "l", "litres": "l",
+        "fluidounce": "floz", "fluidounces": "floz",
+        "cups": "cup", "pint": "pt", "pints": "pt",
+        "quart": "qt", "quarts": "qt",
+        "gallon": "gal", "gallons": "gal",
+        "ft2": "sqft", "sqft": "sqft", "squarefoot": "sqft", "squarefeet": "sqft",
+        "m2": "sqm", "squaremeter": "sqm", "squaremeters": "sqm",
+        "acres": "acre", "hectare": "ha", "hectares": "ha",
+        "byte": "b", "bytes": "b",
+        "kilobyte": "kb", "kilobytes": "kb",
+        "megabyte": "mb", "megabytes": "mb",
+        "gigabyte": "gb", "gigabytes": "gb",
+        "terabyte": "tb", "terabytes": "tb",
+        "kibibyte": "kib", "kibibytes": "kib",
+        "mebibyte": "mib", "mebibytes": "mib",
+        "gibibyte": "gib", "gibibytes": "gib",
     }
     return aliases.get(u, u)
 
@@ -373,14 +420,15 @@ def _run_convert(trigger: str, args: str) -> str:
             return "Temperature units: c, f, k (celsius, fahrenheit, kelvin)."
         result = _convert_temp(value, frm, to)
         return f"{_fmt_number(value)}°{frm[0].upper()} = {_fmt_number(result)}°{to[0].upper()}"
-    if frm in _LENGTH_TO_M and to in _LENGTH_TO_M:
-        result = value * _LENGTH_TO_M[frm] / _LENGTH_TO_M[to]
-        return f"{_fmt_number(value)} {frm} = {_fmt_number(result)} {to}"
-    if frm in _WEIGHT_TO_KG and to in _WEIGHT_TO_KG:
-        result = value * _WEIGHT_TO_KG[frm] / _WEIGHT_TO_KG[to]
-        return f"{_fmt_number(value)} {frm} = {_fmt_number(result)} {to}"
+    for _label, table in _CONVERT_CATEGORIES:
+        if frm in table and to in table:
+            result = value * table[frm] / table[to]
+            return f"{_fmt_number(value)} {frm} = {_fmt_number(result)} {to}"
     return ("I can convert length (mm, cm, m, km, in, ft, yd, mi), "
-            "weight (g, kg, oz, lb), and temperature (c, f, k).")
+            "weight (g, kg, oz, lb), speed (ms, kmh, mph, knot), "
+            "volume (ml, l, floz, cup, pt, qt, gal), "
+            "area (sqm, sqft, acre, ha), data (b, kb, mb, gb, tb, "
+            "kib, mib, gib, tib), and temperature (c, f, k).")
 
 
 # todo list ------------------------------------------------------------
@@ -504,7 +552,7 @@ def register_all(registry: SkillRegistry) -> None:
         run=_run_password,
         examples=["password", "password 20"]))
     registry.register(Skill(
-        name="convert", description="Convert length, weight, and temperature units.",
+        name="convert", description="Convert length, weight, speed, volume, area, data, and temperature units.",
         usage="convert <value> <from> to <to>",
         triggers=["convert", "conversion"],
         run=_run_convert,

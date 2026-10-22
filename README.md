@@ -40,7 +40,7 @@ Core:
 - `dice [sides]` / `dice 2d6` — roll dice
 - `coin` — flip a coin
 - `password [length]` — secure random password (never saved)
-- `convert <value> <from> to <to>` — length (mm/cm/m/km/in/ft/yd/mi), weight (g/kg/oz/lb), temp (c/f/k)
+- `convert <value> <from> to <to>` — length (mm/cm/m/km/in/ft/yd/mi), weight (g/kg/oz/lb), speed (ms/kmh/mph/knot), volume (ml/l/floz/cup/pt/qt/gal), area (sqm/sqft/acre/ha), data (b/kb/mb/gb/tb + kib/mib/gib/tib), temp (c/f/k)
 - `todo <text>` / `todos` / `todo done <n>` / `todo del <n>` / `todo clear` — todo list persisted to `data/`
 - `weather` — honest: needs a weather API key, not available in keyless mode
 - `status` — uptime + skill count

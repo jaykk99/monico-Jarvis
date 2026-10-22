@@ -16,6 +16,12 @@
 **Tests**: 63 → 89, all passing (`tests/test_utilities.py` covers every
 new skill).
 
+**`convert` extended** — 4 new categories: speed (ms, kmh, mph, knot),
+volume (ml, l, floz, cup, pt, qt, gal), area (sqm, sqft, acre, ha),
+data (b, kb, mb, gb, tb + binary kib/mib/gib/tib), with natural-language
+aliases (`cups`, `hectare`, `kilometersperhour`…). Suite now 102 tests,
+all green.
+
 ## v2.1.0 (2026-10-20) — deploy-ready
 
 **Deploy readiness** (the repo's standing blocker was "never deployed"):
