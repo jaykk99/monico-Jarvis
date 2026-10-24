@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.1.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (40 skills).
+Working app (v2.4.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (46 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 144 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 162 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -84,6 +84,15 @@ Everyday tools:
 - `shuffle <a>, <b>, ...` — shuffle a list of items
 - `countdown <YYYY-MM-DD [HH:MM]>` — time remaining until a date/time
 - `prime <integer>` — primality test + factorization (deterministic Miller-Rabin, up to 10^18)
+
+Everyday math + calendar:
+
+- `tip <bill> [tip-%] [people]` — tip, total, and per-person split (`tip 80 20`, `tip 80 20% for 4`; tip percent defaults to 15%)
+- `discount <price> <off-%> [tax-%]` — sale price and savings, with optional tax (`discount 80 25`, `discount 80 25 5`)
+- `bmi <weight> <height>` — BMI + WHO category, metric or imperial (`bmi 80kg 180cm`, `bmi 176lb 70in`; a rough indicator, not a diagnosis)
+- `base <value> <from> to <to>` — bin/oct/dec/hex conversion, all four shown (`base ff hex to dec`, `base 1010 bin to dec`)
+- `weekday <YYYY-MM-DD>` / `weekday today|tomorrow|yesterday` — day of the week plus distance from today
+- `moon [YYYY-MM-DD]` — moon phase + illumination % from the synodic cycle (`moon`, `moon 2026-12-25`)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 

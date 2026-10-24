@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.4.0 (2026-10-24) — everyday math + calendar skills
+
+**6 new keyless skills** (46 total) in `skills/everyday.py`:
+
+- `tip` — tip, total, and per-person split (`tip 80 20`, `tip 80 20% for 4`)
+- `discount` — sale price + savings, optional tax (`discount 80 25 5`)
+- `bmi` — BMI + WHO category, metric or imperial (`bmi 80kg 180cm`)
+- `base` — bin/oct/dec/hex conversion, all four bases shown (`base ff hex to dec`)
+- `weekday` — day of the week for a date, plus distance from today
+- `moon` — moon phase + illumination % from the synodic cycle
+
+**Tests**: 144 → 162, all passing (`tests/test_everyday.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.2.0 (2026-10-22) — utility skills + convert extensions
 
 **4 new keyless skills** (31 total) in `skills/utilities.py`:
