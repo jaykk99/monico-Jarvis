@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.4.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (46 skills).
+Working app (v2.5.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (50 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |

@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.5.0 (2026-10-25) — personal-finance skills
+
+**4 new keyless skills** (50 total) in `skills/finance.py`:
+
+- `paycheck` — hourly/weekly/monthly/yearly pay conversion, optional
+  hours-per-week (`paycheck 25 hourly`, `paycheck 60000 yearly`,
+  `paycheck 25 hourly 35`)
+- `compound` — compound growth of savings + monthly contributions, fixed
+  nominal rate, monthly compounding (`compound 1000 5 10 100`)
+- `budget` — monthly budget breakdown vs income, per-category share and
+  savings rate (`budget 3000 rent 1200 food 400 transport 200`)
+- `savings` — months until a savings goal is reached, with an
+  approximate finish month (`savings 5000 200 1000`)
+
+Plain arithmetic only, labelled as such — no tax, fees, or inflation
+modelled, not financial advice. No new dependencies (month math is
+hand-rolled, not dateutil).
+
+**Tests**: 162 → 172, all passing (`tests/test_finance.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.4.0 (2026-10-24) — everyday math + calendar skills
 
 **6 new keyless skills** (46 total) in `skills/everyday.py`:
