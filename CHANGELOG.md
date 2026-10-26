@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.6.0 (2026-10-26) — household math skills
+
+**4 new keyless skills** (54 total) in `skills/household.py`:
+
+- `unitprice` — price per unit, or compare two packs side by side
+  (`unitprice 5.99 12oz`, `unitprice 5.99 12oz vs 9.99 24oz`)
+- `pace` — running pace per km/mile plus km/h and mph
+  (`pace 5km 25:00`, `pace 10mi 1:20:00`)
+- `sleep` — wake times from a bedtime in 90-minute cycles, after ~15
+  minutes to fall asleep (`sleep 22:30`, `sleep 10:30pm`)
+- `grade` — weighted grade average + letter grade, weights as decimals
+  or percents, scaled to 100% (`grade 90 0.3 80 0.7`)
+
+Plain arithmetic only, labelled as such — sleep times are rough
+cycle estimates, not medical advice, and the letter scale is the common
+US scale. No new dependencies.
+
+**Tests**: 172 → 184, all passing (`tests/test_household.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.5.0 (2026-10-25) — personal-finance skills
 
 **4 new keyless skills** (50 total) in `skills/finance.py`:

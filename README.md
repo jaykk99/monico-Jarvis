@@ -6,7 +6,7 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 ## Status
 
 Working app (v2.5.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (50 skills).
+chat commands through a real plugin-style skill registry (54 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 162 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 184 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -93,6 +93,13 @@ Everyday math + calendar:
 - `base <value> <from> to <to>` — bin/oct/dec/hex conversion, all four shown (`base ff hex to dec`, `base 1010 bin to dec`)
 - `weekday <YYYY-MM-DD>` / `weekday today|tomorrow|yesterday` — day of the week plus distance from today
 - `moon [YYYY-MM-DD]` — moon phase + illumination % from the synodic cycle (`moon`, `moon 2026-12-25`)
+
+Household math:
+
+- `unitprice <price> <qty>[unit]` — price per unit, or compare two packs (`unitprice 5.99 12oz`, `unitprice 5.99 12oz vs 9.99 24oz`)
+- `pace <distance><km|mi|m> <time>` — pace per km/mile plus speed (`pace 5km 25:00`, `pace 10mi 1:20:00`)
+- `sleep <HH:MM>` — wake times in 90-minute cycles after ~15 min to fall asleep (`sleep 22:30`, `sleep 10:30pm`; rough estimates, not medical advice)
+- `grade <score> <weight> ...` — weighted average + letter grade, weights as decimals or percents (`grade 90 0.3 80 0.7`)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
