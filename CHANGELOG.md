@@ -1,5 +1,28 @@
 # Changelog
 
+## v2.7.0 (2026-10-27) — everyday life skills
+
+**4 new keyless skills** (58 total) in `skills/life.py`:
+
+- `split` — split a bill evenly between people, with an optional tip
+  percent; leftover cents go to the first few people so the total adds
+  up exactly (`split 120 4`, `split 120 4 15%`)
+- `fuel` — trip fuel needed and fuel cost; km mode takes L/100km and
+  $/L, mi mode takes mpg and $/gal (`fuel 400km 8 1.50`,
+  `fuel 300mi 30 4.00`)
+- `readtime` — estimated reading time for a word count at a steady
+  pace, default 200 wpm (`readtime 12000`, `readtime 12000 250`)
+- `water` — rough daily water-intake estimate, about 33 ml per kg of
+  body weight plus about 500 ml per hour of exercise
+  (`water 70kg`, `water 154lb 60`)
+
+Plain arithmetic only, labelled as such — the water figure is a rough
+rule-of-thumb estimate, not medical advice, and reading time assumes a
+steady pace with no breaks. No new dependencies.
+
+**Tests**: 184 → 195, all passing (`tests/test_life.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.6.0 (2026-10-26) — household math skills
 
 **4 new keyless skills** (54 total) in `skills/household.py`:
