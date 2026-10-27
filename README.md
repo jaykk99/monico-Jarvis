@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.5.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (54 skills).
+Working app (v2.6.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (58 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 184 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 195 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -100,6 +100,13 @@ Household math:
 - `pace <distance><km|mi|m> <time>` — pace per km/mile plus speed (`pace 5km 25:00`, `pace 10mi 1:20:00`)
 - `sleep <HH:MM>` — wake times in 90-minute cycles after ~15 min to fall asleep (`sleep 22:30`, `sleep 10:30pm`; rough estimates, not medical advice)
 - `grade <score> <weight> ...` — weighted average + letter grade, weights as decimals or percents (`grade 90 0.3 80 0.7`)
+
+Everyday life:
+
+- `split <total> <people> [tip%]` — split a bill evenly with optional tip; leftover cents go to the first few people so it adds up exactly (`split 120 4`, `split 120 4 15%`)
+- `fuel <distance><km|mi> <consumption> <price>` — trip fuel needed and cost; km mode uses L/100km and $/L, mi mode uses mpg and $/gal (`fuel 400km 8 1.50`, `fuel 300mi 30 4.00`)
+- `readtime <words> [wpm]` — estimated reading time at a steady pace, default 200 wpm (`readtime 12000`, `readtime 12000 250`)
+- `water <weight><kg|lb> [exercise-minutes]` — rough daily water-intake estimate, about 33 ml per kg plus 500 ml per hour of exercise (`water 70kg`; rough estimate, not medical advice)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
