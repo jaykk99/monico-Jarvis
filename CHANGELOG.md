@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.8.0 (2026-10-28) — practical math skills
+
+**4 new keyless skills** (62 total) in `skills/practical.py`:
+
+- `percent` — percentage math in four forms: share of a total
+  (`percent 20% of 80`), what percent one number is of another
+  (`percent 20 of 80`), percent change (`percent 80 to 100`), and a
+  value after a percent up/down (`percent 80 +20%`)
+- `paint` — paint needed for a room's walls or a wall area, in litres
+  rounded up, with coats and coverage rate (`paint 4x5 2.4`,
+  `paint 43sqm 2`, default 10 m²/L)
+- `tiles` — floor tiles needed for an area, with a waste allowance
+  for cuts and breakage, default 10% (`tiles 12sqm 30x30cm`,
+  `tiles 4x5m 60x60cm 15%`)
+- `commute` — travel time and arrival time for a distance at a steady
+  speed, km or mi, with an optional depart time (`commute 25km 50`,
+  `commute 30mi 60 08:30`)
+
+Plain arithmetic only, labelled as such — paint ignores doors/windows
+unless subtracted, and commute times assume a steady speed with no
+traffic or stops. No new dependencies.
+
+**Tests**: 195 → 210, all passing (`tests/test_practical.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.7.0 (2026-10-27) — everyday life skills
 
 **4 new keyless skills** (58 total) in `skills/life.py`:

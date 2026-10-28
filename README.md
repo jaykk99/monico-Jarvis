@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.6.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (58 skills).
+Working app (v2.8.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (62 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 195 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 210 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -107,6 +107,13 @@ Everyday life:
 - `fuel <distance><km|mi> <consumption> <price>` — trip fuel needed and cost; km mode uses L/100km and $/L, mi mode uses mpg and $/gal (`fuel 400km 8 1.50`, `fuel 300mi 30 4.00`)
 - `readtime <words> [wpm]` — estimated reading time at a steady pace, default 200 wpm (`readtime 12000`, `readtime 12000 250`)
 - `water <weight><kg|lb> [exercise-minutes]` — rough daily water-intake estimate, about 33 ml per kg plus 500 ml per hour of exercise (`water 70kg`; rough estimate, not medical advice)
+
+Practical math:
+
+- `percent <n>% of <total>` / `<part> of <total>` / `<old> to <new>` / `<value> +<n>%` — percentage math: share of a total, percent change, value after a percent up/down (`percent 20% of 80`, `percent 20 of 80`, `percent 80 to 100`, `percent 80 +20%`)
+- `paint <length>x<width> <height> [coats] [coverage]` or `paint <area>sqm [coats] [coverage]` — paint in litres for walls, rounded up to whole litres, default 10 m²/L (`paint 4x5 2.4`, `paint 43sqm 2`; estimate only, ignores doors/windows)
+- `tiles <area>sqm <w>x<h>cm [waste%]` or `tiles <length>x<width>m <w>x<h>cm [waste%]` — floor tiles needed, default 10% waste for cuts/breakage (`tiles 12sqm 30x30cm`, `tiles 4x5m 60x60cm 15%`)
+- `commute <distance><km|mi> <speed> [HH:MM]` — travel time and arrival time at a steady speed, optional depart time (`commute 25km 50`, `commute 30mi 60 08:30`; estimate only, no traffic/stops)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
