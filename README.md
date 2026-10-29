@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.8.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (62 skills).
+Working app (v2.9.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (66 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 210 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 225 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -114,6 +114,13 @@ Practical math:
 - `paint <length>x<width> <height> [coats] [coverage]` or `paint <area>sqm [coats] [coverage]` — paint in litres for walls, rounded up to whole litres, default 10 m²/L (`paint 4x5 2.4`, `paint 43sqm 2`; estimate only, ignores doors/windows)
 - `tiles <area>sqm <w>x<h>cm [waste%]` or `tiles <length>x<width>m <w>x<h>cm [waste%]` — floor tiles needed, default 10% waste for cuts/breakage (`tiles 12sqm 30x30cm`, `tiles 4x5m 60x60cm 15%`)
 - `commute <distance><km|mi> <speed> [HH:MM]` — travel time and arrival time at a steady speed, optional depart time (`commute 25km 50`, `commute 30mi 60 08:30`; estimate only, no traffic/stops)
+
+DIY home projects:
+
+- `concrete <length>x<width>m <depth>cm [waste%]` — slab volume in m³ and 80 lb bags needed, default 10% waste; imperial form takes `ft` with `in` (`concrete 10x10ft 4in`; an 80 lb bag yields about 0.6 cu ft)
+- `mulch <length>x<width>m <depth>cm [waste%]` — mulch volume in m³/cu yd and 2 cu ft bags needed, default 5% waste; imperial form takes `ft` with `in` (`mulch 10x20ft 3in`)
+- `wallpaper <length>x<width> <height> [pattern-repeat-cm]` — wallpaper rolls for a room's walls from a standard 0.53 m × 10.05 m roll, with the repeat lengthening every drop (`wallpaper 4x5 2.4`, `wallpaper 4x5 2.4 32`; ignores doors/windows)
+- `sod <area>sqm [waste%]` — sod rolls (2 ft × 5 ft) and pallets for a lawn area, default 5% waste (`sod 50sqm`, `sod 1000sqft`)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 

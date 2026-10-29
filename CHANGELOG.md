@@ -1,5 +1,28 @@
 # Changelog
 
+## v2.9.0 (2026-10-29) — DIY home-project skills
+
+**4 new keyless skills** (66 total) in `skills/diy.py`:
+
+- `concrete` — slab volume and 80 lb bags needed, metric or imperial,
+  with a waste allowance defaulting to 10% (`concrete 4x5m 10cm`,
+  `concrete 10x10ft 4in`; an 80 lb bag yields about 0.6 cu ft)
+- `mulch` — mulch volume in m³/cu yd and 2 cu ft bags for a bed,
+  metric or imperial, waste defaulting to 5% (`mulch 10sqm 8cm`,
+  `mulch 10x20ft 3in`)
+- `wallpaper` — wallpaper rolls for a room's walls from a standard
+  0.53 m × 10.05 m roll, with an optional pattern repeat that
+  lengthens every drop (`wallpaper 4x5 2.4`, `wallpaper 4x5 2.4 32`)
+- `sod` — sod rolls (2 ft × 5 ft) and pallets for a lawn area, waste
+  defaulting to 5% (`sod 50sqm`, `sod 1000sqft`)
+
+Plain arithmetic only, labelled as such — bag and roll yields vary by
+brand, wallpaper ignores doors/windows, and mulch settles after
+spreading. No new dependencies.
+
+**Tests**: 210 → 225, all passing (`tests/test_diy.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.8.0 (2026-10-28) — practical math skills
 
 **4 new keyless skills** (62 total) in `skills/practical.py`:
