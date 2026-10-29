@@ -135,6 +135,34 @@ python main.py         # or: uvicorn main:app --reload
 
 Then open http://localhost:8000/ — the Jarvis console. API docs at `/docs`.
 
+## Run in Termux (Android)
+
+Paste this whole block into Termux:
+
+```bash
+pkg update -y && pkg install -y git curl
+git clone https://github.com/jaykk99/monico-Jarvis.git ~/monico-Jarvis
+cd ~/monico-Jarvis
+bash termux_install.sh
+python main.py
+```
+
+Then open **http://127.0.0.1:8000** in your Android browser.
+
+One-liner version (the installer clones the repo for you):
+
+```bash
+curl -sL https://raw.githubusercontent.com/jaykk99/monico-Jarvis/main/termux_install.sh -o ~/termux_install.sh && bash ~/termux_install.sh
+cd ~/monico-Jarvis && python main.py
+```
+
+Do NOT just run `pip install -r requirements.txt` in Termux: fastapi
+pulls in pydantic v2, and pydantic-core (a Rust extension) has no
+precompiled Termux wheel on PyPI, so pip tries to compile Rust on the
+phone and fails. `termux_install.sh` uses the Termux User Repository
+index for a prebuilt wheel, with a Rust source build only as fallback.
+No API keys needed — every skill runs locally on the phone.
+
 ## Tests
 
 ```bash
