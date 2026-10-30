@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.10.0 (2026-10-30) — yard & outdoor skills
+
+**4 new keyless skills** (70 total) in `skills/yard.py`:
+
+- `fence` — picket boards, posts, and rails for a fence run, metric or
+  imperial, with board width, post spacing, and a waste allowance
+  defaulting to 10% (`fence 30m`, `fence 100ft 6in 8ft`)
+- `gravel` — gravel volume in m³/cu yd and weight in tonnes/short tons
+  for a bed or drive, metric or imperial, waste defaulting to 5%
+  (`gravel 10sqm 10cm`, `gravel 10x20ft 4in`)
+- `firewood` — firewood for a stack in full cords (128 cu ft) and face
+  cords, metric or imperial (`firewood 4x8ft 16in`,
+  `firewood 2.4x1.2m 40cm`)
+- `deck` — deck boards for a deck area, boards run along the length,
+  metric or imperial, waste defaulting to 10% (`deck 4x5m 14cm`,
+  `deck 12x16ft 5.5in`)
+
+Plain arithmetic only, labelled as such — board and post sizes, gravel
+density, and cord volumes vary by supplier, and fence/deck counts ignore
+gates and obstacles. No new dependencies.
+
+**Tests**: 225 → 239, all passing (`tests/test_yard.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.9.0 (2026-10-29) — DIY home-project skills
 
 **4 new keyless skills** (66 total) in `skills/diy.py`:
