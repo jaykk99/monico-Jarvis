@@ -1,5 +1,31 @@
 # Changelog
 
+## v2.11.0 (2026-10-31) — build-out skills
+
+**4 new keyless skills** (74 total) in `skills/build.py`:
+
+- `insulation` — insulation rolls for an area, metric or imperial,
+  with roll coverage (default 10 m² / 100 sq ft) and a waste allowance
+  defaulting to 10% (`insulation 50sqm`, `insulation 1000sqft 75sqft`)
+- `drywall` — drywall sheets for a room's walls from perimeter ×
+  height, standard 1.2 × 2.4 m sheets (4 × 8 ft imperial), waste
+  defaulting to 10% (`drywall 4x5m 2.4m`, `drywall 12x16ft 8ft`)
+- `gutter` — gutter sections (3 m / 10 ft each), downspouts, hangers,
+  and end caps for a run, with downspout spacing defaulting to 10 m /
+  30 ft and hangers every 0.6 m / 2 ft (`gutter 30m`,
+  `gutter 100ft 30ft`)
+- `roof` — roofing bundles for a roof area, one square is 100 sq ft
+  (9.29 m²) at 3 bundles, pitch given as rise/run multiplies the
+  footprint by sqrt(1 + (rise/run)²), waste defaulting to 10%
+  (`roof 10x8m`, `roof 30x40ft 6/12`)
+
+Plain arithmetic only, labelled as such — roll and sheet sizes vary by
+brand, drywall ignores ceilings/doors/windows, and roof counts ignore
+valleys, hips, and flashing. No new dependencies.
+
+**Tests**: 239 → 255, all passing (`tests/test_build.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.10.0 (2026-10-30) — yard & outdoor skills
 
 **4 new keyless skills** (70 total) in `skills/yard.py`:

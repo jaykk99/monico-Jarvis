@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.10.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (70 skills).
+Working app (v2.11.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (74 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 239 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 255 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -128,6 +128,13 @@ Yard & outdoor:
 - `gravel <length>x<width>m <depth>cm [waste%]` — gravel volume in m³ and weight in tonnes for a bed or drive, default 5% waste; imperial form takes `ft` with `in` (`gravel 10x20ft 4in`; about 1.5 t/m³, 1.4 short tons/cu yd)
 - `firewood <length>x<height>ft <log>in` — firewood in full cords (128 cu ft) and face cords for a stack; metric form takes `m` with `cm` (`firewood 2.4x1.2m 40cm`)
 - `deck <length>x<width>m <board>cm [waste%]` — deck boards for a deck area, boards run along the length, default 10% waste; imperial form takes `ft` with `in` (`deck 12x16ft 5.5in`)
+
+Build-out:
+
+- `insulation <area>sqm [roll-m2] [waste%]` — insulation rolls for an area, default roll covers 10 m², default 10% waste; imperial form takes `sqft` with a `sqft` roll cover (`insulation 1000sqft 75sqft`)
+- `drywall <length>x<width>m <height>m [waste%]` — drywall sheets for a room's walls (perimeter × height), standard 1.2 × 2.4 m sheets, default 10% waste; imperial form takes `ft` with 4 × 8 ft sheets (`drywall 12x16ft 8ft`; ignores ceilings, doors, windows)
+- `gutter <length>m [downspout-spacing-m]` — gutter sections (3 m each), downspouts, hangers, and end caps for a run, defaults one downspout every 10 m and hangers every 0.6 m; imperial form takes `ft` with 10 ft sections (`gutter 100ft 30ft`)
+- `roof <length>x<width>m [pitch]` — roofing bundles for a roof area, one square is 9.29 m² at 3 bundles, pitch given as rise/run multiplies the footprint (e.g. 6/12 → ×1.12), default 10% waste; imperial form takes `ft` with 100 sq ft squares (`roof 30x40ft 6/12`)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
