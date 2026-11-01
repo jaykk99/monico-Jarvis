@@ -69,11 +69,20 @@ def test_budget_over_and_bad():
 
 
 # ---------------------------------------------------------------- savings
+def _months_ahead(months: int) -> str:
+    """YYYY-MM that many months after today (the skill dates from today)."""
+    import datetime
+
+    today = datetime.date.today()
+    total = (today.year * 12 + (today.month - 1)) + months
+    return f"{total // 12}-{total % 12 + 1:02d}"
+
+
 def test_savings_goal():
     out = _ask("savings 5000 200")
-    assert "2 years 1 months" in out and "2028-11" in out
+    assert "2 years 1 months" in out and _months_ahead(25) in out
     out = _ask("savings 5000 200 1000")
-    assert "1 year 8 months" in out and "2028-06" in out
+    assert "1 year 8 months" in out and _months_ahead(20) in out
 
 
 def test_savings_already_there_and_bad():

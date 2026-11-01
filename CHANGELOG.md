@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.12.0 (2026-11-01) — interior build-out skills
+
+**4 new keyless skills** (78 total) in `skills/interior.py`:
+
+- `siding` — siding squares for a wall area, one square is 100 sq ft
+  (9.29 m²), waste defaulting to 10% (`siding 50sqm`,
+  `siding 1000sqft 15%`)
+- `floor` — flooring boxes for a floor area, a box covers 2 m²
+  (20 sq ft) unless you give its coverage, waste defaulting to 10%
+  (`floor 20sqm`, `floor 400sqft 24sqft`)
+- `studs` — wall studs for a wall run, one spacing apart (0.4 m /
+  16 in on centre by default) plus one end stud
+  (`studs 10m`, `studs 12ft 24in`)
+- `brick` — bricks for a wall area, about 60 bricks per m²
+  (7 per sq ft) with mortar joints, waste defaulting to 10%
+  (`brick 20sqm`, `brick 200sqft 15%`)
+
+Plain arithmetic only, labelled as such — square, box, and brick
+counts vary by brand and product, stud counts ignore openings and
+headers, and brick counts exclude mortar, ties, and lintels. No new
+dependencies.
+
+**Tests**: 255 → 270, all passing (`tests/test_interior.py` covers
+every new skill, including edge cases and bad input).
+
 ## v2.11.0 (2026-10-31) — build-out skills
 
 **4 new keyless skills** (74 total) in `skills/build.py`:
