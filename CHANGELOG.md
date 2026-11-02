@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.13.0 (2026-11-02) — finish skills
+
+**4 new keyless skills** (82 total) in `skills/finish.py`:
+
+- `trim` — trim/baseboard pieces for a room's perimeter (length ×
+  width), pieces 2.4 m (8 ft) unless you give the piece length, waste
+  defaulting to 10% (`trim 4x5m`, `trim 12x16ft 10ft`)
+- `caulk` — caulk tubes for a bead run, one tube covering about 9 m
+  (30 ft) of bead unless you give its coverage, waste defaulting to
+  10% (`caulk 30m`, `caulk 100ft 40ft`)
+- `grout` — grout bags for a tiled area, one bag covering 10 m²
+  (100 sq ft) unless you give its coverage, waste defaulting to 10%
+  (`grout 20sqm`, `grout 200sqft 50sqft`)
+- `adhesive` — tile adhesive (thinset) bags for a tiled area, one bag
+  covering 5 m² (50 sq ft) unless you give its coverage, waste
+  defaulting to 10% (`adhesive 20sqm`, `adhesive 200sqft 25sqft`)
+
+Plain arithmetic only, labelled as such — piece, tube, and bag
+coverages vary by brand and product, trim counts ignore door and
+archway openings, and caulk coverage depends heavily on bead size.
+No new dependencies.
+
+**Tests**: 270 → 284, all passing (`tests/test_finish.py` covers
+every new skill, including edge cases and bad input).
+
 ## v2.12.0 (2026-11-01) — interior build-out skills
 
 **4 new keyless skills** (78 total) in `skills/interior.py`:
