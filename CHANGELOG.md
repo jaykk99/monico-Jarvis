@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.14.0 (2026-11-03) — plumbing skills
+
+**4 new keyless skills** (86 total) in `skills/plumb.py`:
+
+- `pipe` — pipe lengths for a straight run, lengths 3 m (10 ft)
+  unless you give the length, waste defaulting to 10%
+  (`pipe 30m`, `pipe 100ft 20ft`)
+- `slope` — drain drop for a run at a grade, defaulting to 2%
+  metric (1/4 in per ft imperial) (`slope 10m`, `slope 40ft 0.5in`)
+- `tank` — volume of a rectangular tank, in litres and US gallons
+  (`tank 2x1x1m`, `tank 4x3x2ft`)
+- `fill` — time to fill a volume at a flow rate, litres with L/min
+  or US gallons with gpm (`fill 1000L 50L/min`, `fill 100gal 5gpm`)
+
+Plain arithmetic only, labelled as such — pipe lengths, grades, and
+tank volumes vary by product and code, fittings are not counted in
+pipe runs, and slope covers fall only, not venting or trap rules.
+`grade` was deliberately not added as a slope alias: it already
+belongs to the household grade skill. No new dependencies.
+
+**Tests**: 284 → 297, all passing (`tests/test_plumb.py` covers
+every new skill, including edge cases and bad input, plus a
+regression check that `grade` still routes to the grade skill).
+
 ## v2.13.0 (2026-11-02) — finish skills
 
 **4 new keyless skills** (82 total) in `skills/finish.py`:
