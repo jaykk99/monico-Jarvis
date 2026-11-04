@@ -1,5 +1,31 @@
 # Changelog
 
+## v2.15.0 (2026-11-04) — electrical skills
+
+**4 new keyless skills** (90 total) in `skills/electric.py`:
+
+- `watts` — any two of volts, amps, watts gives the third
+  (P = V x I) (`watts 120V 10A`, `watts 1200W 120V`,
+  `watts 1200W 10A`)
+- `circuit` — circuit load against breaker capacity and the 80%
+  continuous guideline (`circuit 15A 120V 800 400`,
+  `circuit 20A 120V 1500`)
+- `bulb` — bulbs for a room area at 200 lumens per m² (20 per
+  sq ft), 800 lumens per bulb unless you give its brightness
+  (`bulb 20sqm`, `bulb 200sqft 1600`)
+- `runtime` — battery runtime from amp-hours and volts, or
+  watt-hours directly, with an optional efficiency derate
+  (`runtime 100Ah 12V 50W`, `runtime 500Wh 50W 85%`)
+
+Plain arithmetic only, labelled as such — the 80% circuit figure
+is a planning guideline, not code advice, and mains work is a
+licensed-electrician question; runtime defaults to the ideal
+figure before inverter losses. No new dependencies.
+
+**Tests**: 297 → 309, all passing (`tests/test_electric.py` covers
+every new skill, including edge cases and bad input, plus a
+regression check that `loan` and `grade` keep their triggers).
+
 ## v2.14.0 (2026-11-03) — plumbing skills
 
 **4 new keyless skills** (86 total) in `skills/plumb.py`:
