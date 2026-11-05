@@ -1,5 +1,31 @@
 # Changelog
 
+## v2.16.0 (2026-11-05) — garden skills
+
+**4 new keyless skills** (94 total) in `skills/garden.py`:
+
+- `soil` — topsoil volume for a bed, in m³ (or cu yd) with 40 L
+  (1.5 cu ft) bag counts, waste defaulting to 10% for settling
+  (`soil 4x2m 15cm`, `soil 12x6ft 6in`)
+- `seed` — grass seed for an area at 35 g/m² (7 lb per 1,000 sq ft),
+  rate overridable (`seed 100sqm`, `seed 5000sqft`)
+- `planter` — soil volume for a rectangular or round planter, in
+  litres (or cu ft and US gallons) with bag counts
+  (`planter 60x30x30cm`, `planter round 30cm 25cm`)
+- `spacing` — plants in a bed on a grid at a given spacing, edge
+  plants included (`spacing 4x2m 30cm`, `spacing 12x6ft 12in`)
+
+Plain arithmetic only, labelled as such — seed rates vary by grass
+species and new lawn versus overseeding, soil settles after watering,
+planter fill is the ideal volume before drainage space and the rim
+gap, and spacing is a grid count, not a planting plan. No new
+dependencies. Also fixes the README skill count, which still said
+86 after v2.15.0 took the total to 90.
+
+**Tests**: 309 → 322, all passing (`tests/test_garden.py` covers
+every new skill, including edge cases and bad input, plus a
+regression check that `mulch` and `gravel` keep their triggers).
+
 ## v2.15.0 (2026-11-04) — electrical skills
 
 **4 new keyless skills** (90 total) in `skills/electric.py`:
