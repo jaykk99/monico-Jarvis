@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.17.0 (2026-11-06) — cooking skills
+
+**4 new keyless skills** (98 total) in `skills/cook.py`:
+
+- `recipe` — scale a recipe amount between serving counts, same unit
+  (`recipe 4 8 200g flour`, `recipe 4 6 1.5cups rice`)
+- `bake` — oven temperature between Celsius, Fahrenheit, and gas mark,
+  with the nearest gas mark shown (`bake 180C`, `bake 350F`,
+  `bake gas 4`)
+- `roast` — roast time by meat and weight (beef, lamb, pork, chicken,
+  turkey) at a standard oven temperature, plus rest time and a
+  thermometer target (`roast beef 1.5kg`, `roast chicken 4lb`,
+  `roast lamb 2kg medium`)
+- `serving` — food amounts per person for a main-course dish, metric
+  with imperial in brackets (`serving 6 pasta`, `serving 4 rice`)
+
+Plain arithmetic only, labelled as such — scaling changes amounts,
+not bake time or temperature, gas marks are approximate, roast times
+are estimates to confirm with a meat thermometer, and serving amounts
+are main-course figures that vary with appetite. No new dependencies.
+
+**Tests**: 322 → 336, all passing (`tests/test_cook.py` covers every
+new skill, including edge cases and bad input, plus a regression
+check that `convert` keeps its trigger).
+
 ## v2.16.0 (2026-11-05) — garden skills
 
 **4 new keyless skills** (94 total) in `skills/garden.py`:

@@ -6,7 +6,7 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 ## Status
 
 Working app (v2.14.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (94 skills).
+chat commands through a real plugin-style skill registry (98 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -135,6 +135,13 @@ Build-out:
 - `drywall <length>x<width>m <height>m [waste%]` — drywall sheets for a room's walls (perimeter × height), standard 1.2 × 2.4 m sheets, default 10% waste; imperial form takes `ft` with 4 × 8 ft sheets (`drywall 12x16ft 8ft`; ignores ceilings, doors, windows)
 - `gutter <length>m [downspout-spacing-m]` — gutter sections (3 m each), downspouts, hangers, and end caps for a run, defaults one downspout every 10 m and hangers every 0.6 m; imperial form takes `ft` with 10 ft sections (`gutter 100ft 30ft`)
 - `roof <length>x<width>m [pitch]` — roofing bundles for a roof area, one square is 9.29 m² at 3 bundles, pitch given as rise/run multiplies the footprint (e.g. 6/12 → ×1.12), default 10% waste; imperial form takes `ft` with 100 sq ft squares (`roof 30x40ft 6/12`)
+
+Cooking & kitchen:
+
+- `recipe <from-servings> <to-servings> <amount><unit> [ingredient]` — scale a recipe amount by the serving ratio, same unit (`recipe 4 8 200g flour`, `recipe 4 6 1.5cups rice`; scaling changes amounts, not bake time or temperature)
+- `bake <temp>C` / `bake <temp>F` / `bake gas <1-9>` — oven temperature between Celsius, Fahrenheit, and gas mark, with the nearest gas mark shown (`bake 180C`, `bake 350F`, `bake gas 4`; gas marks are approximate, ovens vary)
+- `roast <meat> <weight>kg|lb [doneness]` — roast time by meat and weight at a standard oven temperature, plus rest time and a thermometer target (`roast beef 1.5kg`, `roast chicken 4lb`, `roast lamb 2kg medium`; doneness only applies to beef and lamb)
+- `serving <people> <dish>` — food amounts per person for a main-course dish, metric with imperial in brackets (`serving 6 pasta`, `serving 4 rice`; main-course amounts, scale down for a side dish)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
