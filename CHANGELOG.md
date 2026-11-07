@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.18.0 (2026-11-07) — health & fitness skills
+
+**4 new keyless skills** (102 total) in `skills/health.py`:
+
+- `calorie` — calories burned for an activity from a standard MET
+  value, by minutes and body weight, metric or imperial
+  (`calorie run 30 80kg`, `calorie walk 45 175lb`)
+- `heartrate` — estimated max heart rate (220 minus age) and the five
+  training zones, plus Karvonen moderate/vigorous targets when a
+  resting rate is given (`heartrate 40`, `heartrate 40 60`)
+- `steps` — step count to distance and rough calories, stride from
+  height when given, otherwise a default 0.76 m stride
+  (`steps 10000`, `steps 10000 180cm`, `steps 8000 5.9ft`)
+- `workout` — total volume lifted from sets x reps x weight, metric
+  with imperial in brackets (`workout 3x10 50kg bench`,
+  `workout 5x5 225lb squat`)
+
+Plain arithmetic only, labelled as such — MET values are published
+averages, 220 minus age is a rough estimate (usually within 10-12
+bpm), stride and per-step calories are averages, and volume is a
+workload figure, not a training plan. Estimates, not medical advice.
+No new dependencies. Also fixes the README test count, which still
+said 297 after v2.17.0 took the total to 336.
+
+**Tests**: 336 → 350, all passing (`tests/test_health.py` covers every
+new skill, including edge cases and bad input, plus a regression
+check that `bmi` keeps its trigger).
+
 ## v2.17.0 (2026-11-06) — cooking skills
 
 **4 new keyless skills** (98 total) in `skills/cook.py`:

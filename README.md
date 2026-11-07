@@ -6,7 +6,7 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 ## Status
 
 Working app (v2.14.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (98 skills).
+chat commands through a real plugin-style skill registry (102 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 297 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 350 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -142,6 +142,13 @@ Cooking & kitchen:
 - `bake <temp>C` / `bake <temp>F` / `bake gas <1-9>` — oven temperature between Celsius, Fahrenheit, and gas mark, with the nearest gas mark shown (`bake 180C`, `bake 350F`, `bake gas 4`; gas marks are approximate, ovens vary)
 - `roast <meat> <weight>kg|lb [doneness]` — roast time by meat and weight at a standard oven temperature, plus rest time and a thermometer target (`roast beef 1.5kg`, `roast chicken 4lb`, `roast lamb 2kg medium`; doneness only applies to beef and lamb)
 - `serving <people> <dish>` — food amounts per person for a main-course dish, metric with imperial in brackets (`serving 6 pasta`, `serving 4 rice`; main-course amounts, scale down for a side dish)
+
+Health & fitness:
+
+- `calorie <activity> <minutes> <weight>kg|lb` — calories burned for an activity from a standard MET value (`calorie run 30 80kg`, `calorie walk 45 175lb`; an estimate, real burn varies with intensity and fitness)
+- `heartrate <age> [resting-bpm]` — estimated max heart rate and training zones, with Karvonen targets when resting rate is given (`heartrate 40`, `heartrate 40 60`; 220 minus age is a rough estimate, not medical advice)
+- `steps <count> [height]cm|m|ft|in` — step count to distance and rough calories, stride from height when given (`steps 10000`, `steps 10000 180cm`; stride and calories are averages)
+- `workout <sets>x<reps> <weight>kg|lb [exercise]` — total volume lifted, sets x reps x weight (`workout 3x10 50kg bench`, `workout 5x5 225lb squat`; a workload figure, not a training plan)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
