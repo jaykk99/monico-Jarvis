@@ -1,5 +1,40 @@
 # Changelog
 
+## v2.19.0 (2026-11-08) — travel skills
+
+**4 new keyless skills** (106 total) in `skills/travel.py`:
+
+- `distance` — straight-line distance between two cities from a
+  built-in table of 30 cities (12 Canadian, 6 US, 12 world), with a
+  rough nonstop flight time at a typical 850 km/h cruise plus climb
+  and descent (`distance winnipeg to toronto`,
+  `distance toronto to london`; aliases `dist`, `howfar`, plus city
+  aliases like `nyc`, `yyz`, `ywg`)
+- `pack` — packing checklist for a trip type (beach, business,
+  camping, winter, city, roadtrip), quantities scaled by days,
+  default 3 days, with a laundry-day note past a week
+  (`pack beach 5`, `pack business 3`, `pack camping`)
+- `jetlag` — jet-lag recovery time for crossing time zones, about 1
+  day per hour eastbound and half a day per hour westbound, with
+  light-exposure tips that differ by direction
+  (`jetlag 8 east`, `jetlag 5 west`)
+- `luggage` — check a bag weight against standard economy limits
+  (23 kg checked, 10 kg carry-on), metric or imperial, showing how
+  much headroom or overweight remains
+  (`luggage 25kg`, `luggage 18lb carryon`, `luggage 20kg checked`)
+
+Plain arithmetic and lookup tables only, labelled as such —
+distances are straight-line between city centres (road distance is
+longer), flight times are cruise-speed estimates not schedules,
+jet-lag recovery is a rule of thumb not medical advice, and luggage
+limits are the common economy figures (airlines differ, check your
+ticket). No new dependencies. Also fixes the README status line,
+which still said v2.14.0 after v2.18.0 took the total to 102 skills.
+
+**Tests**: 350 → 368, all passing (`tests/test_travel.py` covers every
+new skill, including edge cases and bad input, plus a regression
+check that `convert` keeps its trigger).
+
 ## v2.18.0 (2026-11-07) — health & fitness skills
 
 **4 new keyless skills** (102 total) in `skills/health.py`:
