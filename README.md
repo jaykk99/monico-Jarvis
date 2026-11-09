@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.19.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (106 skills).
+Working app (v2.20.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (110 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 368 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 387 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -156,6 +156,13 @@ Travel:
 - `pack <trip> [days]` — packing checklist for a trip type, quantities scaled by days, default 3 days (`pack beach 5`, `pack business 3`, `pack camping`; beach, business, camping, winter, city, roadtrip)
 - `jetlag <hours> [east|west]` — jet-lag recovery time for crossing time zones, about 1 day per hour eastbound and half a day per hour westbound (`jetlag 8 east`, `jetlag 5 west`; a rule of thumb, not medical advice)
 - `luggage <weight>kg|lb [checked|carryon]` — check a bag against standard economy limits, 23 kg checked and 10 kg carry-on (`luggage 25kg`, `luggage 18lb carryon`; limits vary by airline, check your ticket)
+
+Weather math (formulas only — no lookup, that still needs an API key):
+
+- `windchill <temp>C|F <wind>kmh|mph` — wind chill from air temperature and wind speed, with frostbite-time guidance (`windchill -15C 30kmh`, `windchill 5F 20mph`; only applies at or below 10 C with wind at or above 4.8 km/h)
+- `heatindex <temp>C|F <humidity>%` — heat index from temperature and humidity, with danger bands (`heatindex 32C 70%`, `heatindex 90F 65%`; only applies at or above 27 C / 80 F with humidity at or above 40%)
+- `dewpoint <temp>C|F <humidity>%` — dew point and humidity comfort from temperature and humidity, with a frost note when the dew point is at or below freezing (`dewpoint 25C 60%`, `dewpoint 77F 50%`)
+- `humidex <temp>C|F <humidity>%` — Canadian humidex from temperature and humidity, with the dew point shown (`humidex 30C 60%`, `humidex 86F 50%`; a formula estimate, not medical advice)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 

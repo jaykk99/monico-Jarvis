@@ -1,5 +1,37 @@
 # Changelog
 
+## v2.20.0 (2026-11-09) — weather-math skills
+
+**4 new keyless skills** (110 total) in `skills/weather.py`:
+
+- `windchill` — wind chill from air temperature and wind speed, using
+  the Environment Canada / NWS formula, with frostbite-time guidance
+  for exposed skin (`windchill -15C 30kmh`, `windchill 5F 20mph`;
+  only applies at or below 10 C with wind at or above 4.8 km/h)
+- `heatindex` — heat index from temperature and humidity, using the
+  Rothfusz regression, with NWS danger bands
+  (`heatindex 32C 70%`, `heatindex 90F 65%`; only applies at or above
+  27 C / 80 F with humidity at or above 40%)
+- `dewpoint` — dew point and humidity comfort from temperature and
+  humidity, using the Magnus formula, with a frost note when the dew
+  point is at or below freezing (`dewpoint 25C 60%`,
+  `dewpoint 77F 50%`)
+- `humidex` — Canadian humidex from temperature and humidity (dew
+  point via Magnus), with the dew point shown
+  (`humidex 30C 60%`, `humidex 86F 50%`)
+
+Formulas only, labelled as such — these compute feels-like numbers
+from temperatures you give them and do not look up the weather (the
+honest `weather` fallback is untouched: a lookup still needs an API
+key). Wind chill and heat index describe how the air feels on exposed
+skin, frostbite and heat-danger times are rough EC/NWS guidance not
+medical advice, and a bare number is read as Celsius / km/h. Metric
+with imperial in brackets throughout. No new dependencies.
+
+**Tests**: 368 → 387, all passing (`tests/test_weather.py` covers every
+new skill, including edge cases and bad input, plus a regression
+check that the `weather` lookup fallback is untouched).
+
 ## v2.19.0 (2026-11-08) — travel skills
 
 **4 new keyless skills** (106 total) in `skills/travel.py`:
