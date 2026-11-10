@@ -1,5 +1,39 @@
 # Changelog
 
+## v2.21.0 (2026-11-10) — car-math skills
+
+**4 new keyless skills** (114 total) in `skills/car.py`:
+
+- `brake` — stopping distance from speed and road condition, using
+  reaction distance (1.5 s) plus braking distance v^2 / (2 * mu * g)
+  with textbook friction coefficients (dry 0.7, wet 0.4, snow 0.25,
+  ice 0.1), with car-length equivalents (`brake 100kmh dry`,
+  `brake 60mph snow`; assumes good tires and brakes on a flat road)
+- `tire` — tire pressure change with temperature, via the ideal gas
+  law on absolute pressure, with the ~1 psi per 10 F rule of thumb
+  as a cross-check (`tire 32psi -20C 20C`, `tire 220kpa -30C 20C`;
+  set pressures cold, never let air out of a hot tire)
+- `oil` — oil-change due check by km and months since the last
+  change, whichever limit hits first (`oil 8000km 10000km`,
+  `oil 8000km 10000km 5mo 6mo`; use the interval in your owner's
+  manual)
+- `tow` — towing check: trailer weight against the tow rating, with
+  tongue weight at 10-15% of the trailer and a trailer-brakes note
+  above about 910 kg (`tow 1500kg 2000kg`, `tow 5000lb 7000lb 12`;
+  the hitch rating can be lower than the vehicle's — the lower one
+  wins)
+
+Formulas and rules of thumb only, labelled as such — these estimate
+from numbers you give them and do not read your car (no OBD, no
+telematics). Stopping distances assume good tires and brakes on a
+flat road; tire pressures are cold pressures; oil intervals come
+from the owner's manual; tow ratings are the manufacturer's maximum
+for your exact vehicle and hitch. Metric with imperial in brackets
+throughout. No new dependencies.
+
+**Tests**: 387 → 408, all passing (`tests/test_car.py` covers every
+new skill, including edge cases and bad input).
+
 ## v2.20.0 (2026-11-09) — weather-math skills
 
 **4 new keyless skills** (110 total) in `skills/weather.py`:
