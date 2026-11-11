@@ -1,5 +1,39 @@
 # Changelog
 
+## v2.22.0 (2026-11-11) — school-math skills
+
+**4 new keyless skills** (118 total) in `skills/school.py`:
+
+- `final` — the score needed on the final exam to finish at a target
+  average, from (target - current x (1 - w)) / w, where w is the final's
+  weight (`final 80 40% 85`, `final 80 0.4 85`; weight as a percent or a
+  fraction). Says so when the target is out of reach, with the best
+  average a perfect final gives, and when it's already locked in even
+  with a zero on the final
+- `gpa` — GPA on the common 4.0 scale from letter grades or percents,
+  with an optional `x<credits>` weight per course (`gpa A B+ C`,
+  `gpa 92 88 76`, `gpa 92x3 88x1`; your school may use a different
+  scale, so the number is labelled an estimate)
+- `study` — splits study hours across the days given or the days left
+  before a deadline, flagging a heavy daily load over about 6 hours a
+  day (`study 20h 5d`, `study 12h before 2026-11-30`; a plan, not a
+  promise — cramming that much rarely sticks)
+- `exam` — pace per question with quarter-way checkpoints and a 10%
+  time buffer target (`exam 60q 90min`, `exam 40q 120m`; if you're
+  behind at a checkpoint, skip the hard ones and come back)
+
+Plain arithmetic only, labelled as such — grades and weights come from
+you, not from a gradebook lookup (there is none in keyless mode). The
+GPA scale is the common 4.0 one and final weights come from your course
+outline; a wrong weight or a different school scale gives a different
+answer. Complements the existing `grade` weighted-average skill, which
+is untouched. No new dependencies.
+
+**Tests**: 408 → 425, all passing (`tests/test_school.py` covers every
+new skill, including edge cases and bad input; the skill-count
+assertions in `tests/test_car.py` and `tests/test_weather.py` now
+expect 118).
+
 ## v2.21.0 (2026-11-10) — car-math skills
 
 **4 new keyless skills** (114 total) in `skills/car.py`:

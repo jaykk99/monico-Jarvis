@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.20.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (114 skills).
+Working app (v2.22.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (118 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -170,6 +170,13 @@ Car math (formulas and rules of thumb only — no OBD, no telematics):
 - `tire <pressure>psi|kpa|bar <from-temp>C|F <to-temp>C|F` — what a tire set at one temperature reads at another, via the ideal gas law, with the ~1 psi per 10 F rule of thumb as a cross-check (`tire 32psi -20C 20C`, `tire 220kpa -30C 20C`; set pressures cold, never let air out of a hot tire)
 - `oil <km-since>km <interval>km [months-since]mo [months-interval]mo` — oil-change due check by km and months, whichever limit hits first (`oil 8000km 10000km`, `oil 8000km 10000km 5mo 6mo`; use the interval in your owner's manual)
 - `tow <trailer-weight>kg|lb <tow-rating>kg|lb [tongue-%]` — towing check: trailer weight against the tow rating, with tongue weight at 10-15% of the trailer (`tow 1500kg 2000kg`, `tow 5000lb 7000lb 12`; the hitch rating can be lower than the vehicle's — the lower one wins)
+
+School math (formulas only — no gradebook lookup, grades come from you):
+
+- `final <current>% <final-weight> <target>%` — the score needed on the final exam to finish at a target average (`final 80 40% 85`, `final 80 0.4 85`; weight as a percent or a fraction; says so when the target is out of reach, with the best average a perfect final gives, and when it's already locked in)
+- `gpa <grade> <grade> ...` — GPA on the common 4.0 scale from letter grades or percents, with an optional `x<credits>` weight per course (`gpa A B+ C`, `gpa 92 88 76`, `gpa 92x3 88x1`; your school may use a different scale, so treat it as an estimate)
+- `study <hours>h <days>d` or `study <hours>h before <YYYY-MM-DD>` — splits study hours across the days left, flagging a heavy daily load over about 6 hours a day (`study 20h 5d`, `study 12h before 2026-11-30`)
+- `exam <questions>q <minutes>min` — pace per question with quarter-way checkpoints and a 10% time buffer target (`exam 60q 90min`, `exam 40q 120m`)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 

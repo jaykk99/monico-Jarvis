@@ -12,11 +12,11 @@ import time as _time
 from typing import Any
 
 from skills.base import SkillRegistry
-from skills import builtin, build, car, cook, diy, electric, everyday, finance, finish, garden, health, household, interior, life, moretools, plumb, practical, productivity, texttools, travel, utilities, weather, yard
+from skills import builtin, build, car, cook, diy, electric, everyday, finance, finish, garden, health, household, interior, life, moretools, plumb, practical, productivity, school, texttools, travel, utilities, weather, yard
 
 log = logging.getLogger("monico-jarvis.agent")
 
-VERSION = "2.21.0"
+VERSION = "2.22.0"
 BOOT_TIME = _time.time()
 
 _FALLBACK_SUGGESTIONS = (
@@ -51,6 +51,7 @@ class MonicoAgent:
         travel.register_all(self.registry)
         weather.register_all(self.registry)
         car.register_all(self.registry)
+        school.register_all(self.registry)
         self.disabled = {d.lower() for d in disabled}
         if self.disabled:
             log.info("disabled skills: %s", sorted(self.disabled))
