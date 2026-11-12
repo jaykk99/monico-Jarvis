@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.23.0 (2026-11-12) — sports-stats skills
+
+**4 new keyless skills** (122 total) in `skills/sports.py`:
+
+- `batting` — batting average to three decimals from hits and at-bats,
+  with an optional target average and the consecutive hits needed to
+  reach it (`batting 100 300`, `batting 80 300 .300`; target as `.300`,
+  `0.300`, or `300`). Says so when already at the target, and flags the
+  Mendoza line (.200) on a rough stretch
+- `era` — earned run average, 9 x earned runs / innings, with baseball
+  innings notation where .1 is one out and .2 is two outs (`era 18 60`,
+  `era 10 6.1` = 6 and 1/3 innings; earned runs only, errors and passed
+  balls don't count)
+- `qbrating` — NFL passer rating from completions, attempts, yards,
+  touchdowns, and interceptions, each component clamped to 0-2.375
+  (`qbrating 20 30 250 2 1` = 100.7; a perfect game is 158.3. The NFL
+  formula, not ESPN's QBR and not college passer efficiency)
+- `handicap` — one round's golf differential from (score - course
+  rating) x 113 / slope (`handicap 85 72.1 128`), or a WHS handicap
+  index from 3-20 differentials using the best few per the WHS table,
+  averaged and times 0.96 (`handicap diffs 10.2 12.5 8.9`)
+
+Plain arithmetic only, labelled as such — box scores and differentials
+come from you, not from a lookup (there is none in keyless mode). An
+official golf index comes from your golf association. Complements the
+existing `pace` running-pace skill, which is untouched. No new
+dependencies.
+
 ## v2.22.0 (2026-11-11) — school-math skills
 
 **4 new keyless skills** (118 total) in `skills/school.py`:

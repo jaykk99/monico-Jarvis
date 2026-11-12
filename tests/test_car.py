@@ -189,4 +189,4 @@ def test_tow_bad():
 def test_car_skills_registered():
     names = {s["name"] for s in agent.list_skills()}
     assert {"brake", "tire", "oil", "tow"} <= names
-    assert len(agent.list_skills()) == 118
+    assert len(agent.list_skills()) == 122

@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.22.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (118 skills).
+Working app (v2.23.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (122 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 387 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 442 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -178,6 +178,13 @@ School math (formulas only — no gradebook lookup, grades come from you):
 - `study <hours>h <days>d` or `study <hours>h before <YYYY-MM-DD>` — splits study hours across the days left, flagging a heavy daily load over about 6 hours a day (`study 20h 5d`, `study 12h before 2026-11-30`)
 - `exam <questions>q <minutes>min` — pace per question with quarter-way checkpoints and a 10% time buffer target (`exam 60q 90min`, `exam 40q 120m`)
 
+Sports stats (formulas only — no box-score lookup, the numbers come from you):
+
+- `batting <hits> <at-bats> [target]` — batting average to three decimals, with an optional target average and the consecutive hits needed to reach it (`batting 100 300`, `batting 80 300 .300`; a rate, not a prediction — the next at-bat is still a coin flip weighted by the hitter)
+- `era <earned-runs> <innings>` — earned run average, 9 x earned runs / innings, with baseball innings notation where .1 is one out and .2 is two outs (`era 18 60`, `era 10 6.1`; earned runs only — errors and passed balls don't count)
+- `qbrating <completions> <attempts> <yards> <touchdowns> <interceptions>` — NFL passer rating, max 158.3 (`qbrating 20 30 250 2 1`; the NFL formula, not ESPN's QBR and not college passer efficiency)
+- `handicap <score> <course-rating> <slope>` / `handicap diffs <d1> <d2> ...` — one round's differential, or a WHS handicap index from 3-20 differentials using the best few per the WHS table, averaged and times 0.96 (`handicap 85 72.1 128`, `handicap diffs 10.2 12.5 8.9`; an official index comes from your golf association, course rating/slope from the scorecard)
+
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
 ## Run locally
@@ -223,7 +230,7 @@ No API keys needed — every skill runs locally on the phone.
 
 ```bash
 pip install -r requirements-dev.txt
-pytest tests/ -q   # 63 tests
+pytest tests/ -q   # 442 tests
 ```
 
 ## Deploy

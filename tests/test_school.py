@@ -162,7 +162,7 @@ def test_exam_bad():
 def test_school_skills_registered():
     names = {s["name"] for s in agent.list_skills()}
     assert {"final", "gpa", "study", "exam"} <= names
-    assert len(agent.list_skills()) == 118
+    assert len(agent.list_skills()) == 122
     # The existing `grade` weighted-average skill is untouched by `final`.
     out = _ask("grade 90 0.3 80 0.7")
     assert "Weighted average: 83.0" in out
