@@ -1,5 +1,65 @@
 # Changelog
 
+## v2.24.0 (2026-11-13) — music-theory skills
+
+**4 new keyless skills** (126 total) in `skills/music.py`:
+
+- `chord` — the notes in a chord from its root and type: major, minor,
+  dim, aug, sus2, sus4, 7, maj7, m7, m7b5, dim7, 6, m6, 9, m9, add9
+  (`chord C`, `chord Am`, `chord G7`, `chord F#m7`, `chord C major`).
+  Minor and dominant-7th chords spell flats the way sheet music does
+  (C7 is C E G Bb, C dim is C Eb Gb), and rare roots read in their
+  common enharmonic form (D# as Eb)
+- `musicscale` — the notes in a scale: major, minor, harmonic minor,
+  melodic minor, dorian, mixolydian, pentatonic, minor pentatonic,
+  blues (`musicscale C`, `musicscale A minor`, `musicscale D blues`).
+  Named `musicscale` because plain `scale` is already the recipe
+  scaler in `cook.py` — that trigger is untouched
+- `tempo` — beat and bar lengths at a BPM, beats in a duration, or BPM
+  from a beat length (`tempo 120`, `tempo 120 3`, `tempo 120 90s`,
+  `tempo 120 3min`, `tempo 500ms` = 120 BPM; assumes a steady beat)
+- `transpose` — move notes up or down by semitones or an interval name
+  (`transpose C E G +2`, `transpose Bb Eb F -2`,
+  `transpose A C# E +P5`; shift -12 to 12, or m2, M2, m3, M3, P4, TT,
+  P5, m6, M6, m7, M7, octave)
+
+Pitch names only, labelled as such — a chord or scale names pitches,
+not voicings or fingerings, and spellings follow the key. No new
+dependencies.
+
+**Tests**: 442 → 457, all passing (`tests/test_music.py` covers every
+new skill, including edge cases and bad input; the skill-count
+assertions in `tests/test_car.py`, `tests/test_school.py`,
+`tests/test_sports.py`, and `tests/test_weather.py` now expect 126).
+
+## v2.23.0 (2026-11-12) — sports-stats skills
+
+**4 new keyless skills** (122 total) in `skills/sports.py`:
+
+- `batting` — batting average to three decimals from hits and at-bats,
+  with an optional target average and the consecutive hits needed to
+  reach it (`batting 100 300`, `batting 80 300 .300`; target as `.300`,
+  `0.300`, or `300`). Says so when already at the target, and flags the
+  Mendoza line (.200) on a rough stretch
+- `era` — earned run average, 9 x earned runs / innings, with baseball
+  innings notation where .1 is one out and .2 is two outs (`era 18 60`,
+  `era 10 6.1` = 6 and 1/3 innings; earned runs only, errors and passed
+  balls don't count)
+- `qbrating` — NFL passer rating from completions, attempts, yards,
+  touchdowns, and interceptions, each component clamped to 0-2.375
+  (`qbrating 20 30 250 2 1` = 100.7; a perfect game is 158.3. The NFL
+  formula, not ESPN's QBR and not college passer efficiency)
+- `handicap` — one round's golf differential from (score - course
+  rating) x 113 / slope (`handicap 85 72.1 128`), or a WHS handicap
+  index from 3-20 differentials using the best few per the WHS table,
+  averaged and times 0.96 (`handicap diffs 10.2 12.5 8.9`)
+
+Plain arithmetic only, labelled as such — box scores and differentials
+come from you, not from a lookup (there is none in keyless mode). An
+official golf index comes from your golf association. Complements the
+existing `pace` running-pace skill, which is untouched. No new
+dependencies.
+
 ## v2.22.0 (2026-11-11) — school-math skills
 
 **4 new keyless skills** (118 total) in `skills/school.py`:
