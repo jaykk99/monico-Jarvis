@@ -161,7 +161,7 @@ def test_humidex_bad():
 def test_weather_skills_registered():
     names = {s["name"] for s in agent.list_skills()}
     assert {"windchill", "heatindex", "dewpoint", "humidex"} <= names
-    assert len(agent.list_skills()) == 122
+    assert len(agent.list_skills()) == 126
     # The honest `weather` lookup fallback is untouched by the new math.
     out = _ask("weather")
     assert "needs a weather API key" in out

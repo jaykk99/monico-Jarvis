@@ -1,5 +1,37 @@
 # Changelog
 
+## v2.24.0 (2026-11-13) — music-theory skills
+
+**4 new keyless skills** (126 total) in `skills/music.py`:
+
+- `chord` — the notes in a chord from its root and type: major, minor,
+  dim, aug, sus2, sus4, 7, maj7, m7, m7b5, dim7, 6, m6, 9, m9, add9
+  (`chord C`, `chord Am`, `chord G7`, `chord F#m7`, `chord C major`).
+  Minor and dominant-7th chords spell flats the way sheet music does
+  (C7 is C E G Bb, C dim is C Eb Gb), and rare roots read in their
+  common enharmonic form (D# as Eb)
+- `musicscale` — the notes in a scale: major, minor, harmonic minor,
+  melodic minor, dorian, mixolydian, pentatonic, minor pentatonic,
+  blues (`musicscale C`, `musicscale A minor`, `musicscale D blues`).
+  Named `musicscale` because plain `scale` is already the recipe
+  scaler in `cook.py` — that trigger is untouched
+- `tempo` — beat and bar lengths at a BPM, beats in a duration, or BPM
+  from a beat length (`tempo 120`, `tempo 120 3`, `tempo 120 90s`,
+  `tempo 120 3min`, `tempo 500ms` = 120 BPM; assumes a steady beat)
+- `transpose` — move notes up or down by semitones or an interval name
+  (`transpose C E G +2`, `transpose Bb Eb F -2`,
+  `transpose A C# E +P5`; shift -12 to 12, or m2, M2, m3, M3, P4, TT,
+  P5, m6, M6, m7, M7, octave)
+
+Pitch names only, labelled as such — a chord or scale names pitches,
+not voicings or fingerings, and spellings follow the key. No new
+dependencies.
+
+**Tests**: 442 → 457, all passing (`tests/test_music.py` covers every
+new skill, including edge cases and bad input; the skill-count
+assertions in `tests/test_car.py`, `tests/test_school.py`,
+`tests/test_sports.py`, and `tests/test_weather.py` now expect 126).
+
 ## v2.23.0 (2026-11-12) — sports-stats skills
 
 **4 new keyless skills** (122 total) in `skills/sports.py`:
