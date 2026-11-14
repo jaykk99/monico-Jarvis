@@ -166,4 +166,4 @@ def test_handicap_bad():
 def test_sports_skills_registered():
     names = {s["name"] for s in agent.list_skills()}
     assert {"batting", "era", "qbrating", "handicap"} <= names
-    assert len(agent.list_skills()) == 126
+    assert len(agent.list_skills()) == 130

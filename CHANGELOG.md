@@ -1,5 +1,40 @@
 # Changelog
 
+## v2.25.0 (2026-11-14) — science skills
+
+**4 new keyless skills** (130 total) in `skills/science.py`:
+
+- `ph` — pH, pOH, [H+] and [OH-] for a dilute water solution at 25 C,
+  from a concentration or from a pH value, with an acid/neutral/base
+  label (`ph 0.01` = pH 2.00, `ph oh 0.001` = pH 11.00,
+  `ph value 7` = neutral, both ions 10^-7 mol/L; weak acids need their
+  dissociation constant for a real pH)
+- `moles` — moles from mass and molar mass with a molecule count via
+  Avogadro's number, mass from moles, or molarity from moles or mass
+  and volume (`moles 36g 18` = 2 mol, `moles 2mol 18` = 36 g,
+  `moles molarity 2mol 0.5L` = 4 mol/L,
+  `moles molarity 36g 18 2L` = 1 mol/L)
+- `energy` — energy unit conversions (J, kJ, MJ, cal, kcal, eV, kWh,
+  BTU), kinetic energy KE = 1/2 m v^2, and gravitational potential
+  PE = m g h (`energy 1 kWh to J` = 3,600,000 J,
+  `energy ke 80kg 10` = 4,000 J, `energy pe 10kg 5m` = 490.5 J;
+  textbook formulas, no friction or air resistance)
+- `density` — density in g/cm3 and kg/m3 from mass and volume, with a
+  floats-or-sinks verdict against water, or a density unit conversion
+  (`density 100g 50ml` = 2 g/cm3, sinks; `density 500g 1L` = 0.5 g/cm3,
+  floats; `density 2.7 g/cm3 to kg/m3` = 2,700 kg/m3; shape still
+  matters — a steel boat floats because of its shape)
+
+Formulas only, labelled as such — concentrations and masses come from
+you, not from a lookup (there is none in keyless mode). No new
+dependencies.
+
+**Tests**: 457 → 473, all passing (`tests/test_science.py` covers every
+new skill, including edge cases and bad input; the skill-count
+assertions in `tests/test_car.py`, `tests/test_music.py`,
+`tests/test_school.py`, `tests/test_sports.py`, and
+`tests/test_weather.py` now expect 130).
+
 ## v2.24.0 (2026-11-13) — music-theory skills
 
 **4 new keyless skills** (126 total) in `skills/music.py`:

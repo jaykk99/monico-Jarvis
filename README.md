@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.24.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (126 skills).
+Working app (v2.25.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (130 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -192,6 +192,13 @@ Music theory (pitch arithmetic only — notes come from you, no song lookup):
 - `tempo <bpm> [beats-per-bar|duration]` / `tempo <ms>ms` — beat and bar lengths at a tempo, beats in a duration, or BPM from a beat length (`tempo 120`, `tempo 120 3`, `tempo 120 90s`, `tempo 500ms`; assumes a steady beat)
 - `transpose <note> <note> ... <shift>` — move notes up or down by semitones or an interval (`transpose C E G +2`, `transpose A C# E +P5`; shift -12 to 12, or m2, M2, m3, M3, P4, TT, P5, m6, M6, m7, M7, octave)
 
+Science (formulas only — concentrations and masses come from you, no lab lookup):
+
+- `ph <concentration>` / `ph oh <concentration>` / `ph value <pH>` — pH, pOH, [H+] and [OH-] for a dilute water solution at 25 C, with an acid/neutral/base label (`ph 0.01`, `ph oh 0.001`, `ph value 3`; weak acids need their dissociation constant for a real pH)
+- `moles <mass>g <molar-mass>` / `moles <n>mol <molar-mass>` / `moles molarity ...` — moles from mass and molar mass (with molecule count via Avogadro's number), mass from moles, or molarity from moles or mass and volume (`moles 36g 18`, `moles 2mol 18`, `moles molarity 2mol 0.5L`, `moles molarity 36g 18 2L`)
+- `energy <value> <unit> to <unit>` / `energy ke <mass>kg <speed>` / `energy pe <mass>kg <height>m` — energy unit conversions (J, kJ, MJ, cal, kcal, eV, kWh, BTU), kinetic energy KE = 1/2 m v^2, gravitational potential PE = m g h (`energy 1 kWh to J`, `energy ke 80kg 10`, `energy pe 10kg 5m`; textbook formulas, no friction or air resistance)
+- `density <mass> <volume>` / `density <value> <unit> to <unit>` — density in g/cm3 and kg/m3 with a floats-or-sinks verdict against water, or a density unit conversion (`density 100g 50ml`, `density 500g 1L`, `density 2.7 g/cm3 to kg/m3`; shape still matters — a steel boat floats because of its shape)
+
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
 ## Run locally
@@ -237,7 +244,7 @@ No API keys needed — every skill runs locally on the phone.
 
 ```bash
 pip install -r requirements-dev.txt
-pytest tests/ -q   # 457 tests
+pytest tests/ -q   # 473 tests
 ```
 
 ## Deploy

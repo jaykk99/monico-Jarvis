@@ -168,6 +168,6 @@ def test_transpose_bad():
 def test_music_skills_registered():
     names = {s["name"] for s in agent.list_skills()}
     assert {"chord", "musicscale", "tempo", "transpose"} <= names
-    assert len(agent.list_skills()) == 126
+    assert len(agent.list_skills()) == 130
     # Plain `scale` still belongs to the recipe scaler (cook), not music.
     assert "400 g flour" in _ask("scale 4 8 200g flour")
