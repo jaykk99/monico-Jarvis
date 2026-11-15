@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.25.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (130 skills).
+Working app (v2.26.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (134 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 457 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 489 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -199,6 +199,13 @@ Science (formulas only — concentrations and masses come from you, no lab looku
 - `energy <value> <unit> to <unit>` / `energy ke <mass>kg <speed>` / `energy pe <mass>kg <height>m` — energy unit conversions (J, kJ, MJ, cal, kcal, eV, kWh, BTU), kinetic energy KE = 1/2 m v^2, gravitational potential PE = m g h (`energy 1 kWh to J`, `energy ke 80kg 10`, `energy pe 10kg 5m`; textbook formulas, no friction or air resistance)
 - `density <mass> <volume>` / `density <value> <unit> to <unit>` — density in g/cm3 and kg/m3 with a floats-or-sinks verdict against water, or a density unit conversion (`density 100g 50ml`, `density 500g 1L`, `density 2.7 g/cm3 to kg/m3`; shape still matters — a steel boat floats because of its shape)
 
+Physics (textbook formulas only — steady speeds, even force spread, no friction):
+
+- `force <mass> <acceleration>` / `force weight <mass>` / `force accel <force> <mass>` / `force mass <force> <acceleration>` — force from F = m a, weight W = m g, or the rearranged forms (`force 10kg 5`, `force weight 80kg`, `force accel 100N 20kg`, `force mass 50N 5`; g is the standard 9.81 m/s^2, no friction included)
+- `speed <distance> <time>` / `speed dist <speed> <time>` / `speed time <distance> <speed>` — speed from v = d / t, or distance/time from speed (`speed 100km 2h`, `speed dist 60kmh 2h`, `speed time 120km 60kmh`; steady speed assumed, no stops)
+- `pressure <force> <area>` / `pressure <value> <unit> to <unit>` — pressure P = F / A, or a pressure unit conversion in Pa, kPa, MPa, bar, atm, psi, mmHg (`pressure 100N 2m2`, `pressure 1 atm to psi`, `pressure 100 kPa to Pa`; force spread evenly, gauge vs absolute not distinguished)
+- `wave <frequency> <speed>` / `wave freq <wavelength> <speed>` / `wave period <frequency>` / `wave light <wavelength>` — wavelength from v = f x lambda, frequency, period T = 1 / f, or light frequency from a wavelength (`wave 440Hz 343`, `wave freq 2m 343`, `wave period 440Hz`, `wave light 500nm`; sound speed is 343 m/s at 20 C, light in vacuum)
+
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
 ## Run locally
@@ -244,7 +251,7 @@ No API keys needed — every skill runs locally on the phone.
 
 ```bash
 pip install -r requirements-dev.txt
-pytest tests/ -q   # 473 tests
+pytest tests/ -q   # 489 tests
 ```
 
 ## Deploy

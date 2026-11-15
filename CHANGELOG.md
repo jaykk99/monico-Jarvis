@@ -1,5 +1,37 @@
 # Changelog
 
+## v2.26.0 (2026-11-15) — physics skills
+
+**4 new keyless skills** (134 total) in `skills/physics.py`:
+
+- `force` — force from F = m a, weight W = m g, or the rearranged
+  forms a = F / m and m = F / a (`force 10kg 5` = 50 N,
+  `force weight 80kg` = 784.8 N, `force accel 100N 20kg` = 5 m/s^2,
+  `force mass 50N 5` = 10 kg; standard g = 9.81 m/s^2, no friction)
+- `speed` — speed from v = d / t, or distance/time from speed
+  (`speed 100km 2h` = 50 km/h, `speed dist 60kmh 2h` = 120 km,
+  `speed time 120km 60kmh` = 2 h; steady speed assumed, no stops)
+- `pressure` — pressure P = F / A, or a unit conversion in Pa, kPa,
+  MPa, bar, atm, psi, mmHg (`pressure 100N 2m2` = 50 Pa,
+  `pressure 1 atm to psi` = 14.7 psi, `pressure 100 kPa to Pa` =
+  100,000 Pa; force spread evenly, gauge vs absolute not
+  distinguished)
+- `wave` — wavelength from v = f x lambda, frequency, period
+  T = 1 / f, or light frequency from a wavelength
+  (`wave 440Hz 343` = 0.7795 m, `wave freq 2m 343` = 171.5 Hz,
+  `wave period 440Hz` = 2.273 ms, `wave light 500nm` = 5.996e+14 Hz;
+  sound speed is 343 m/s at 20 C, light in vacuum)
+
+Formulas only, labelled as such — distances and speeds come from
+you, not from a lookup (there is none in keyless mode). No new
+dependencies.
+
+**Tests**: 473 → 489, all passing (`tests/test_physics.py` covers every
+new skill, including edge cases and bad input; the skill-count
+assertions in `tests/test_car.py`, `tests/test_music.py`,
+`tests/test_school.py`, `tests/test_science.py`,
+`tests/test_sports.py`, and `tests/test_weather.py` now expect 134).
+
 ## v2.25.0 (2026-11-14) — science skills
 
 **4 new keyless skills** (130 total) in `skills/science.py`:
