@@ -1,5 +1,37 @@
 # Changelog
 
+## v2.27.0 (2026-11-16) — geometry skills
+
+**4 new keyless skills** (138 total) in `skills/geometry.py`:
+
+- `circle` — radius, diameter, circumference, and area from any one
+  measurement (`circle r5` = diameter 10, circumference 31.42, area
+  78.54; `circle d10`, `circle c31.42`, `circle a78.54` give the same
+  circle back; C = 2 pi r, A = pi r^2)
+- `triangle` — right-triangle hypotenuse and area from two legs, or
+  perimeter, Heron area, right-angled check, and type from three
+  sides (`triangle 3 4` = hypotenuse 5, area 6; `triangle 3 4 5` =
+  perimeter 12, area 6, right, scalene; `triangle 5 5 6` = area 12,
+  isosceles; says so when the sides can't make a triangle)
+- `trig` — sine, cosine, tangent of an angle in degrees, or the
+  inverse trig of a ratio (`trig sin 30` = 0.5, `trig tan 45` = 1,
+  `trig asin 0.5` = 30 deg, `trig acos 0` = 90 deg; asin/acos only
+  take -1 to 1, tan of 90 deg is undefined)
+- `coord` — distance, midpoint, and slope between two points
+  (`coord 0 0 3 4` = distance 5, midpoint (1.5, 2), slope 1.333;
+  `coord 1 2 1 5` = distance 3, slope undefined, vertical line)
+
+Formulas only, labelled as such — lengths come back in whatever unit
+you give, angles are degrees, and two triangle sides are read as the
+legs of a right triangle. No new dependencies.
+
+**Tests**: 489 → 506, all passing (`tests/test_geometry.py` covers every
+new skill, including edge cases and bad input; the skill-count
+assertions in `tests/test_car.py`, `tests/test_music.py`,
+`tests/test_physics.py`, `tests/test_school.py`,
+`tests/test_science.py`, `tests/test_sports.py`, and
+`tests/test_weather.py` now expect 138).
+
 ## v2.26.0 (2026-11-15) — physics skills
 
 **4 new keyless skills** (134 total) in `skills/physics.py`:

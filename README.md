@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.26.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (134 skills).
+Working app (v2.27.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (138 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -205,6 +205,13 @@ Physics (textbook formulas only — steady speeds, even force spread, no frictio
 - `speed <distance> <time>` / `speed dist <speed> <time>` / `speed time <distance> <speed>` — speed from v = d / t, or distance/time from speed (`speed 100km 2h`, `speed dist 60kmh 2h`, `speed time 120km 60kmh`; steady speed assumed, no stops)
 - `pressure <force> <area>` / `pressure <value> <unit> to <unit>` — pressure P = F / A, or a pressure unit conversion in Pa, kPa, MPa, bar, atm, psi, mmHg (`pressure 100N 2m2`, `pressure 1 atm to psi`, `pressure 100 kPa to Pa`; force spread evenly, gauge vs absolute not distinguished)
 - `wave <frequency> <speed>` / `wave freq <wavelength> <speed>` / `wave period <frequency>` / `wave light <wavelength>` — wavelength from v = f x lambda, frequency, period T = 1 / f, or light frequency from a wavelength (`wave 440Hz 343`, `wave freq 2m 343`, `wave period 440Hz`, `wave light 500nm`; sound speed is 343 m/s at 20 C, light in vacuum)
+
+Geometry (textbook formulas only — lengths in whatever unit you give, angles in degrees):
+
+- `circle r<radius>` / `circle d<diameter>` / `circle c<circumference>` / `circle a<area>` — radius, diameter, circumference, and area from any one measurement (`circle r5`, `circle d10`, `circle c31.42`, `circle a78.54`; C = 2 pi r, A = pi r^2)
+- `triangle <leg> <leg>` / `triangle <side> <side> <side>` — right-triangle hypotenuse and area from two legs, or perimeter, Heron area, right-angled check, and type from three sides (`triangle 3 4`, `triangle 3 4 5`, `triangle 5 5 6`; two sides are read as the legs of a right triangle)
+- `trig <sin|cos|tan> <degrees>` / `trig <asin|acos|atan> <ratio>` — sine, cosine, tangent of an angle in degrees, or the inverse trig of a ratio in degrees (`trig sin 30`, `trig tan 45`, `trig asin 0.5`; asin/acos only take -1 to 1)
+- `coord <x1> <y1> <x2> <y2>` — distance, midpoint, and slope between two points (`coord 0 0 3 4`, `coord 1 2 1 5`; a vertical line has no slope)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
