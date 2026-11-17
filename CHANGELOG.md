@@ -1,5 +1,40 @@
 # Changelog
 
+## v2.28.0 (2026-11-17) — probability skills
+
+**4 new keyless skills** (142 total) in `skills/probability.py`:
+
+- `percentile` — the value at a percentile of a list (linear
+  interpolation), or the percentile rank of a value in it
+  (`percentile 90 10 20 30 40 50` = 46, `percentile 50 10 20 30 40 50`
+  = 30, `percentile rank 30 in 10 20 30 40 50` = 60th percentile;
+  p = 0 is the minimum, p = 100 the maximum; a percentile describes
+  the list you give, not the wider population)
+- `prob` — binomial chance of exactly, at least, or at most k
+  successes in n independent tries with the same p
+  (`prob 10 3 0.5` = 0.1172, about 1 in 8.533; `prob atleast 10 9 0.5`
+  = 0.01074; `prob 5 5 0.2` = 0.00032; `prob 20 0 0.1` = 0.1216;
+  trials 1–1000, successes can't exceed trials)
+- `odds` — decimal, fractional, and American odds plus the implied
+  probability (`odds 2.5` = 3/2 = +150, 40% implied; `odds -200` =
+  1.5 = 1/2, 66.67% implied; `odds 3/2` and `odds 2/1` work too;
+  arithmetic only — the implied probability is not a prediction,
+  and no real money is involved)
+- `regress` — least-squares line, correlation r, and r^2 for x,y
+  points, with an optional prediction (`regress 1,2 2,4 3,5 4,4 5,5`
+  = y = 0.6x + 2.2, r = 0.7746, r^2 = 0.6; `predict 6` = 5.8;
+  association is not cause, and predicting far outside the x range
+  is a guess)
+
+Formulas only, labelled as such — no new dependencies.
+
+**Tests**: 506 → 526, all passing (`tests/test_probability.py` covers every
+new skill, including edge cases and bad input; the skill-count
+assertions in `tests/test_car.py`, `tests/test_geometry.py`,
+`tests/test_music.py`, `tests/test_physics.py`, `tests/test_school.py`,
+`tests/test_science.py`, `tests/test_sports.py`, and
+`tests/test_weather.py` now expect 142).
+
 ## v2.27.0 (2026-11-16) — geometry skills
 
 **4 new keyless skills** (138 total) in `skills/geometry.py`:

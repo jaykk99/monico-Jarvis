@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.27.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (138 skills).
+Working app (v2.28.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (142 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -212,6 +212,13 @@ Geometry (textbook formulas only — lengths in whatever unit you give, angles i
 - `triangle <leg> <leg>` / `triangle <side> <side> <side>` — right-triangle hypotenuse and area from two legs, or perimeter, Heron area, right-angled check, and type from three sides (`triangle 3 4`, `triangle 3 4 5`, `triangle 5 5 6`; two sides are read as the legs of a right triangle)
 - `trig <sin|cos|tan> <degrees>` / `trig <asin|acos|atan> <ratio>` — sine, cosine, tangent of an angle in degrees, or the inverse trig of a ratio in degrees (`trig sin 30`, `trig tan 45`, `trig asin 0.5`; asin/acos only take -1 to 1)
 - `coord <x1> <y1> <x2> <y2>` — distance, midpoint, and slope between two points (`coord 0 0 3 4`, `coord 1 2 1 5`; a vertical line has no slope)
+
+Probability & statistics (textbook formulas only — independent tries, same p every try; a percentile describes the list you give, not the wider population):
+
+- `percentile <p> <numbers...>` / `percentile rank <value> in <numbers...>` — the value at the pth percentile (linear interpolation), or the percentile rank of a value in the list (`percentile 90 10 20 30 40 50`, `percentile rank 30 in 10 20 30 40 50`; p = 0 is the minimum, p = 100 the maximum)
+- `prob <trials> <successes> <p>` / `prob atleast|atmost <trials> <successes> <p>` — binomial chance of exactly, at least, or at most k successes in n tries (`prob 10 3 0.5`, `prob atleast 10 9 0.5`, `prob atmost 10 1 0.5`; tries are independent with the same p)
+- `odds <decimal>` / `odds <american>` / `odds <fraction>` — convert between decimal, fractional, and American odds, with the implied probability (`odds 2.5`, `odds +150`, `odds -200`, `odds 3/2`; arithmetic only — the implied probability is not a prediction, and no real money is involved)
+- `regress <x1,y1> <x2,y2> ... [predict <x>]` — least-squares line, correlation r, and r^2 for a set of points, with an optional prediction (`regress 1,2 2,4 3,5 4,4 5,5`, `regress 1,2 2,4 3,5 4,4 5,5 predict 6`; association is not cause, and predicting far outside the x range is a guess)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
