@@ -1,5 +1,50 @@
 # Changelog
 
+## v2.29.0 (2026-11-18) — algebra + statistics II skills
+
+**8 new keyless skills** (150 total) in `skills/algebra.py` and
+`skills/statistics.py`:
+
+- `linear` — solve a x + b = 0 for x, or an equation written out
+  (`linear 2 3` = x = -1.5, `linear 2x+3=7` = x = 2; a = 0 means every
+  x works or none does)
+- `quadratic` — roots, discriminant, and vertex of
+  a x^2 + b x + c = 0 (`quadratic 1 -3 2` = roots x = 2 and x = 1,
+  discriminant 1, vertex (1.5, -0.25); a negative discriminant
+  means no real roots, only a complex pair)
+- `simul` — solve two linear equations in x and y by Cramer's rule
+  (`simul 1 1 5 2 -1 1` = x = 2, y = 3; a zero determinant means
+  parallel lines: same line or no solution)
+- `line` — slope-intercept equation of the line through two points
+  (`line 0 0 3 4` = y = 1.333x, slope 1.333; a vertical line has
+  no slope)
+- `zscore` — how many standard deviations a value sits from the
+  mean, against a list or a given mean and sd
+  (`zscore 50 in 10 20 30 40 50` = 1.265; `zscore 50 30 15.81` =
+  1.265; sample sd, the same one `stats` reports; a z-score
+  describes the list you give, not the wider population)
+- `weighted` — weighted average of value-weight pairs
+  (`weighted 90x3 80x2 70x1` = 83.33, plain mean 80;
+  weights must be positive)
+- `movavg` — moving average with a sliding window
+  (`movavg 3 1 2 3 4 5` = 2, 3, 4; the window must be at least 2
+  and no bigger than the list)
+- `quartile` — five-number summary, IQR, and Tukey outlier fences
+  (`quartile 1 2 3 4 5 6 7 8 9 10` = min 1, Q1 3.25, median 5.5,
+  Q3 7.75, max 10, IQR 4.5, no outliers;
+  `quartile 2 4 4 4 5 5 7 9` flags 9 as an outlier; quartiles use
+  the same linear interpolation as `percentile`)
+
+Formulas only, labelled as such — no new dependencies.
+
+**Tests**: 526 → 574, all passing (`tests/test_algebra.py` and
+`tests/test_statistics.py` cover every new skill, including edge
+cases and bad input; the skill-count assertions in
+`tests/test_car.py`, `tests/test_geometry.py`, `tests/test_music.py`,
+`tests/test_physics.py`, `tests/test_probability.py`,
+`tests/test_school.py`, `tests/test_science.py`,
+`tests/test_sports.py`, and `tests/test_weather.py` now expect 150).
+
 ## v2.28.0 (2026-11-17) — probability skills
 
 **4 new keyless skills** (142 total) in `skills/probability.py`:

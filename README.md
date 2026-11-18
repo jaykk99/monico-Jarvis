@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.28.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (142 skills).
+Working app (v2.29.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (150 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress), `algebra.py` (linear, quadratic, simul, line), `statistics.py` (zscore, weighted, movavg, quartile) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -219,6 +219,20 @@ Probability & statistics (textbook formulas only — independent tries, same p e
 - `prob <trials> <successes> <p>` / `prob atleast|atmost <trials> <successes> <p>` — binomial chance of exactly, at least, or at most k successes in n tries (`prob 10 3 0.5`, `prob atleast 10 9 0.5`, `prob atmost 10 1 0.5`; tries are independent with the same p)
 - `odds <decimal>` / `odds <american>` / `odds <fraction>` — convert between decimal, fractional, and American odds, with the implied probability (`odds 2.5`, `odds +150`, `odds -200`, `odds 3/2`; arithmetic only — the implied probability is not a prediction, and no real money is involved)
 - `regress <x1,y1> <x2,y2> ... [predict <x>]` — least-squares line, correlation r, and r^2 for a set of points, with an optional prediction (`regress 1,2 2,4 3,5 4,4 5,5`, `regress 1,2 2,4 3,5 4,4 5,5 predict 6`; association is not cause, and predicting far outside the x range is a guess)
+
+Algebra (textbook formulas only — real roots only where stated; a vertical line has no slope):
+
+- `linear <a> <b>` / `linear <equation>` — solve a x + b = 0 for x, or an equation written out (`linear 2 3`, `linear 2x+3=7`; a = 0 means every x works or none does)
+- `quadratic <a> <b> <c>` — roots, discriminant, and vertex of a x^2 + b x + c = 0 (`quadratic 1 -3 2`, `quadratic 1 2 1`; a negative discriminant means no real roots, only a complex pair)
+- `simul <a1> <b1> <c1> <a2> <b2> <c2>` — solve two linear equations in x and y by Cramer's rule (`simul 1 1 5 2 -1 1`; a zero determinant means parallel lines: same line or no solution)
+- `line <x1> <y1> <x2> <y2>` — slope-intercept equation of the line through two points (`line 0 0 3 4`; a vertical line has no slope)
+
+Statistics II (textbook formulas only — builds on `stats` and `percentile`; a z-score or quartile describes the list you give, not the wider population):
+
+- `zscore <value> in <numbers...>` / `zscore <value> <mean> <sd>` — how many standard deviations a value sits from the mean (`zscore 50 in 10 20 30 40 50`, `zscore 50 30 15.81`; sample sd, the same one `stats` reports)
+- `weighted <value>x<weight> ...` — weighted average of value-weight pairs (`weighted 90x3 80x2 70x1`; weights must be positive)
+- `movavg <window> <numbers...>` — moving average with a sliding window (`movavg 3 1 2 3 4 5`; the window must be at least 2 and no bigger than the list)
+- `quartile <numbers...>` — five-number summary, IQR, and Tukey outlier fences (`quartile 1 2 3 4 5 6 7 8 9 10`; quartiles use the same linear interpolation as `percentile`)
 
 Anything else gets an honest fallback: "I don't have a skill for that yet."
 
