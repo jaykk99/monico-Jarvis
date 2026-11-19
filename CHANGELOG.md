@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.31.0 (2026-11-19) — algebra IV skills
+
+**2 new keyless skills** (154 total) in `skills/algebra.py`:
+
+- `gcd` — greatest common divisor and least common multiple of two
+  whole numbers (`gcd 12 18` = GCD 6, LCM 36; `gcd 7 13` = GCD 1,
+  LCM 91; zero handled, 0 and 0 rejected)
+- `ratio` — simplify a ratio to lowest terms, or solve a proportion
+  (`ratio 12 18` = 2:3; `ratio 1.5 2.5` = 3:5; `ratio 3 4 12` =
+  12:16, missing term 16; exact fractions throughout)
+
+All skill-count assertions in `tests/` now expect 154.
+
 ## v2.30.0 (2026-11-19) — algebra III skills
 
 **2 new keyless skills** (152 total) in `skills/algebra.py`:

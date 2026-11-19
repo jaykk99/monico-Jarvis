@@ -9,7 +9,7 @@ def _ask(text: str) -> str:
 
 
 def test_skill_count():
-    assert len(agent.list_skills()) == 152
+    assert len(agent.list_skills()) == 154
 
 
 # ---------------------------------------------------------------- linear
@@ -230,3 +230,43 @@ def test_seq_bad():
     assert "Usage" in _ask("seq arith 1 2")
     assert "whole number" in _ask("seq geo 1 2 0")
     assert "whole number" in _ask("seq arith 1 2 1.5")
+
+
+# ---------------------------------------------------------------- gcd
+def test_gcd_basic():
+    # 12 = 2^2 x 3, 18 = 2 x 3^2: GCD 6, LCM 36.
+    out = _ask("gcd 12 18")
+    assert "GCD of 12 and 18 is 6. LCM is 36." in out
+
+
+def test_gcd_coprime_and_large():
+    # 7 and 13 share nothing: GCD 1, LCM 91. 100 and 80: GCD 20, LCM 400.
+    assert "GCD of 7 and 13 is 1. LCM is 91." in _ask("gcd 7 13")
+    assert "GCD of 100 and 80 is 20. LCM is 400." in _ask("gcd 100 80")
+
+
+def test_gcd_zero_and_bad():
+    assert "GCD of 0 and 5 is 5. LCM is 0." in _ask("gcd 0 5")
+    assert "not defined" in _ask("gcd 0 0")
+    assert "Usage" in _ask("gcd 12")
+    assert "Usage" in _ask("gcd 1.5 2")
+
+
+# ---------------------------------------------------------------- ratio
+def test_ratio_simplify():
+    # 12:18 -> 2:3; 1.5:2.5 -> 3:5.
+    assert "12:18 simplifies to 2:3." in _ask("ratio 12 18")
+    assert "1.5:2.5 simplifies to 3:5." in _ask("ratio 1.5 2.5")
+
+
+def test_ratio_proportion():
+    # 3:4 = 12:x -> x = 16; 2:5 = 10:x -> x = 25.
+    assert "3:4 = 12:16, so the missing term is 16." in _ask("ratio 3 4 12")
+    assert "2:5 = 10:25, so the missing term is 25." in _ask("ratio 2 5 10")
+
+
+def test_ratio_bad():
+    assert "Usage" in _ask("ratio")
+    assert "Usage" in _ask("ratio 12")
+    assert "not a ratio" in _ask("ratio 0 0")
+    assert "No single answer" in _ask("ratio 0 4 12")

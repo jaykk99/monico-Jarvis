@@ -33,6 +33,9 @@ Rules used:
   first n is n / 2 x (2 a + (n - 1) d); geometric term n is
   a r^(n - 1) and the sum is a (r^n - 1) / (r - 1), or a n when
   r = 1.
+- GCD: Euclid's algorithm; LCM = |a b| / GCD. A ratio a:b in
+  lowest terms is a / GCD : b / GCD, and a proportion a:b = c:x
+  solves to x = b c / a.
 
 Conventions and explicit caveats:
 - A linear or quadratic equation is solved exactly as written —
@@ -47,11 +50,14 @@ Conventions and explicit caveats:
   answer is every x on one side of it.
 - Sequence sums are exact for the terms you give; a geometric
   ratio far from 1 with a large n grows too big to print.
+- `gcd` needs whole numbers; `ratio` works with decimals too, but
+  a proportion with a first term of 0 has no single answer.
 """
 from __future__ import annotations
 
 import math
 import re
+from fractions import Fraction
 
 from .base import Skill, SkillRegistry
 
@@ -390,6 +396,70 @@ def _run_seq(trigger: str, args: str) -> str:
             f"ratio {_fmt(step)}), sum of the first {n} = {_fmt(total)}.")
 
 
+# ---------------------------------------------------------------- gcd
+
+_USAGE_GCD = (
+    "Usage: `gcd <a> <b>` — e.g. `gcd 12 18`. Whole numbers only; "
+    "reports both the greatest common divisor and the least common multiple."
+)
+
+
+def _run_gcd(trigger: str, args: str) -> str:
+    tokens = (args or "").split()
+    if len(tokens) != 2:
+        return _USAGE_GCD
+    try:
+        a = int(tokens[0])
+        b = int(tokens[1])
+    except ValueError:
+        return _USAGE_GCD
+    if a == 0 and b == 0:
+        return "GCD of 0 and 0 is not defined — give at least one non-zero number."
+    g = math.gcd(a, b)
+    lcm = 0 if a == 0 or b == 0 else abs(a * b) // g
+    return f"GCD of {a} and {b} is {g}. LCM is {lcm}."
+
+
+# ---------------------------------------------------------------- ratio
+
+_USAGE_RATIO = (
+    "Usage: `ratio <a> <b>` simplifies a:b to lowest terms — e.g. "
+    "`ratio 12 18` — or `ratio <a> <b> <c>` solves the proportion "
+    "a:b = c:x — e.g. `ratio 3 4 12`."
+)
+
+
+def _run_ratio(trigger: str, args: str) -> str:
+    tokens = (args or "").split()
+    if len(tokens) not in (2, 3):
+        return _USAGE_RATIO
+    try:
+        values = [Fraction(t) for t in tokens]
+    except (ValueError, ZeroDivisionError):
+        return _USAGE_RATIO
+    if len(values) == 2:
+        a, b = values
+        if a == 0 and b == 0:
+            return "0:0 is not a ratio — give at least one non-zero number."
+        frac = Fraction(a, b) if b != 0 else None
+        if frac is None:
+            return f"{_fmt(float(a))}:0 cannot be simplified — the second term is 0."
+        num, den = frac.numerator, frac.denominator
+        sign = "-" if (a < 0) != (b < 0) else ""
+        return (f"{_fmt(float(a))}:{_fmt(float(b))} simplifies to "
+                f"{sign}{abs(num)}:{abs(den)}.")
+    a, b, c = values
+    if a == 0:
+        return "No single answer — with a first term of 0 the proportion has none."
+    x = b * c / a
+    if x.denominator == 1:
+        shown = f"{x.numerator:,}"
+    else:
+        shown = _fmt(float(x))
+    return (f"{_fmt(float(a))}:{_fmt(float(b))} = {_fmt(float(c))}:{shown}, "
+            f"so the missing term is {shown}.")
+
+
 def register_all(registry: SkillRegistry) -> None:
     registry.register(Skill(
         name="linear", description="Solve a linear equation a x + b = c for x.",
@@ -427,3 +497,15 @@ def register_all(registry: SkillRegistry) -> None:
         triggers=["seq", "sequence"],
         run=_run_seq,
         examples=["seq arith 3 5 10", "seq geo 2 3 5", "seq geo 5 1 7"]))
+    registry.register(Skill(
+        name="gcd", description="Greatest common divisor and least common multiple of two integers.",
+        usage="gcd <a> <b>",
+        triggers=["gcd", "lcm"],
+        run=_run_gcd,
+        examples=["gcd 12 18", "gcd 7 13", "gcd 100 80"]))
+    registry.register(Skill(
+        name="ratio", description="Simplify a ratio to lowest terms, or solve a proportion.",
+        usage="ratio <a> <b> | ratio <a> <b> <c>",
+        triggers=["ratio", "proportion"],
+        run=_run_ratio,
+        examples=["ratio 12 18", "ratio 1.5 2.5", "ratio 3 4 12"]))
