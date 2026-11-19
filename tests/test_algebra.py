@@ -1,4 +1,4 @@
-"""Tests for skills/algebra.py: linear, quadratic, simul, line."""
+"""Tests for skills/algebra.py: linear, quadratic, simul, line, ineq, seq."""
 from agent import agent
 
 
@@ -9,7 +9,7 @@ def _ask(text: str) -> str:
 
 
 def test_skill_count():
-    assert len(agent.list_skills()) == 150
+    assert len(agent.list_skills()) == 152
 
 
 # ---------------------------------------------------------------- linear
@@ -170,3 +170,63 @@ def test_line_bad():
     assert "Usage" in _ask("line")
     assert "Usage" in _ask("line 0 0 3")
     assert "same point" in _ask("line 1 1 1 1")
+
+
+# ---------------------------------------------------------------- ineq
+def test_ineq_basic():
+    # 2x > 4 -> x > 2, boundary value 7.
+    out = _ask("ineq 2x+3>7")
+    assert "x > 2. At x = 2 both sides equal 7." in out
+
+
+def test_ineq_flip():
+    # -2x + 4 < 10 -> -2x < 6, dividing by -2 flips it: x > -3.
+    out = _ask("ineq -2x+4<10")
+    assert "x > -3. At x = -3 both sides equal 10." in out
+
+
+def test_ineq_closed_and_both_sides():
+    # 3x >= 15 -> x >= 5; 2x <= 10 -> x <= 5, boundary 27.
+    assert "x >= 5. At x = 5 both sides equal 10." in _ask("ineq 3x-5>=10")
+    assert "x <= 5. At x = 5 both sides equal 27." in _ask("ineq 5x+2<=3x+12")
+
+
+def test_ineq_none_or_every():
+    # x cancels, 3 > 5 never holds; 3 < 5 always holds.
+    assert "No solution" in _ask("ineq 2x+3>2x+5")
+    assert "Every value of x works" in _ask("ineq 2x+3<2x+5")
+
+
+def test_ineq_bad():
+    assert "Usage" in _ask("ineq")
+    assert "Usage" in _ask("ineq 2x+3=7")
+    assert "Usage" in _ask("ineq 2x+3")
+
+
+# ---------------------------------------------------------------- seq
+def test_seq_arith():
+    # Term 10 = 3 + 9 x 5 = 48; sum = 10/2 x (6 + 45) = 255.
+    out = _ask("seq arith 3 5 10")
+    assert "Arithmetic: term 10 = 48 (first 3, difference 5), sum of the first 10 = 255." in out
+    # Terms 10, 8, 6, 4, 2: term 5 = 2, sum 30.
+    out = _ask("seq arith 10 -2 5")
+    assert "Arithmetic: term 5 = 2 (first 10, difference -2), sum of the first 5 = 30." in out
+
+
+def test_seq_geo():
+    # Term 5 = 2 x 3^4 = 162; sum = 2 x (243 - 1) / 2 = 242.
+    out = _ask("seq geo 2 3 5")
+    assert "Geometric: term 5 = 162 (first 2, ratio 3), sum of the first 5 = 242." in out
+    # Ratio 1: every term is 5, sum of 7 is 35.
+    out = _ask("seq geo 5 1 7")
+    assert "Geometric: term 7 = 5 (first 5, ratio 1), sum of the first 7 = 35." in out
+    # Terms 3, 1.5, 0.75, 0.375: term 4 = 0.375, sum 5.625.
+    out = _ask("seq geo 3 0.5 4")
+    assert "Geometric: term 4 = 0.375 (first 3, ratio 0.5), sum of the first 4 = 5.625." in out
+
+
+def test_seq_bad():
+    assert "Usage" in _ask("seq")
+    assert "Usage" in _ask("seq arith 1 2")
+    assert "whole number" in _ask("seq geo 1 2 0")
+    assert "whole number" in _ask("seq arith 1 2 1.5")

@@ -16,7 +16,7 @@ from skills import algebra, builtin, build, car, cook, diy, electric, everyday, 
 
 log = logging.getLogger("monico-jarvis.agent")
 
-VERSION = "2.29.0"
+VERSION = "2.30.0"
 BOOT_TIME = _time.time()
 
 _FALLBACK_SUGGESTIONS = (

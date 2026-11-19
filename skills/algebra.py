@@ -1,11 +1,12 @@
 """Algebra helpers: linear equations, quadratics, two-equation systems,
-and the line through two points.
+the line through two points, inequalities, and sequences.
 
 All local, keyless, no network — same contract as the rest of skills/.
 Plain textbook algebra for everyday questions: the x that makes a
 straight-line equation true, the roots and vertex of a parabola, where
-two straight lines cross, and the slope-intercept equation of the line
-through two points.
+two straight lines cross, the slope-intercept equation of the line
+through two points, which x values satisfy an inequality, and how a
+sequence grows and adds up.
 
 Rules used:
 - Linear: a x + b = c has the single solution x = (c - b) / a when
@@ -26,6 +27,12 @@ Rules used:
   y-intercept b = y1 - m x1, equation y = m x + b, x-intercept
   -b / m when m is not 0. A vertical line (x1 = x2) has no slope
   and the equation x = x1; a horizontal line has slope 0.
+- Inequality: the same rearrangement as a linear equation, but
+  dividing by a negative number flips < to >, and vice versa.
+- Sequences: arithmetic term n is a + (n - 1) d and the sum of the
+  first n is n / 2 x (2 a + (n - 1) d); geometric term n is
+  a r^(n - 1) and the sum is a (r^n - 1) / (r - 1), or a n when
+  r = 1.
 
 Conventions and explicit caveats:
 - A linear or quadratic equation is solved exactly as written —
@@ -36,6 +43,10 @@ Conventions and explicit caveats:
   or none — there is no single crossing point to report.
 - `line` gives the equation of the line; `coord` already gives the
   distance, midpoint, and slope between the same two points.
+- `ineq` reports the boundary where both sides are equal; the
+  answer is every x on one side of it.
+- Sequence sums are exact for the terms you give; a geometric
+  ratio far from 1 with a large n grows too big to print.
 """
 from __future__ import annotations
 
@@ -258,6 +269,127 @@ def _run_line(trigger: str, args: str) -> str:
             f"y-intercept {_fmt(intercept)}, {xint}.")
 
 
+# ---------------------------------------------------------------- shared parsing
+
+_TERM_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d+)?|\.\d+)?\*?x$")
+_NUM_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$")
+
+
+def _parse_linear_side(text: str) -> tuple[float, float] | None:
+    """Parse one side of a linear expression into (coef of x, constant)."""
+    side = text.replace(" ", "").lower()
+    if not side:
+        return None
+    if side.count("x") > 1:
+        return None
+    coef = 0.0
+    const = 0.0
+    for term in re.findall(r"[+-]?[^+-]+", side):
+        if not term:
+            continue
+        if "x" in term:
+            if term.count("x") > 1 or not _TERM_RE.match(term):
+                return None
+            head = term.replace("x", "").replace("*", "")
+            if head in ("", "+"):
+                coef += 1.0
+            elif head == "-":
+                coef -= 1.0
+            else:
+                value = _num(head)
+                if value is None:
+                    return None
+                coef += value
+        else:
+            if not _NUM_RE.match(term):
+                return None
+            value = _num(term)
+            if value is None:
+                return None
+            const += value
+    return coef, const
+
+
+# ---------------------------------------------------------------- ineq
+
+_USAGE_INEQ = (
+    "Usage: `ineq <inequality>` — e.g. `ineq 2x+3>7` or "
+    "`ineq -2x+4<10`. One variable (x), linear only; <, >, <=, >= all work."
+)
+
+_FLIP = {"<": ">", ">": "<", "<=": ">=", ">=": "<="}
+
+
+def _run_ineq(trigger: str, args: str) -> str:
+    text = (args or "").replace(" ", "")
+    if not text:
+        return _USAGE_INEQ
+    op = None
+    for cand in ("<=", ">=", "<", ">"):
+        if cand in text:
+            op = cand
+            left, right = text.split(cand, 1)
+            break
+    if op is None or not left or not right:
+        return _USAGE_INEQ
+    parsed_left = _parse_linear_side(left)
+    parsed_right = _parse_linear_side(right)
+    if parsed_left is None or parsed_right is None:
+        return _USAGE_INEQ
+    a1, c1 = parsed_left
+    a2, c2 = parsed_right
+    d = a1 - a2
+    if d == 0:
+        holds = {"<": c1 < c2, ">": c1 > c2,
+                 "<=": c1 <= c2, ">=": c1 >= c2}[op]
+        if holds:
+            return "Every value of x works — the x terms cancel and the rest always holds."
+        return "No solution — the x terms cancel and the rest never holds."
+    boundary = (c2 - c1) / d
+    rel = op if d > 0 else _FLIP[op]
+    value = a1 * boundary + c1
+    return (f"x {rel} {_fmt(boundary)}. At x = {_fmt(boundary)} "
+            f"both sides equal {_fmt(value)}.")
+
+
+# ---------------------------------------------------------------- seq
+
+_USAGE_SEQ = (
+    "Usage: `seq arith <first> <difference> <n>` — e.g. "
+    "`seq arith 3 5 10` — or `seq geo <first> <ratio> <n>`, e.g. "
+    "`seq geo 2 3 5`. n is a whole number, 1–1000."
+)
+
+
+def _run_seq(trigger: str, args: str) -> str:
+    tokens = (args or "").split()
+    if len(tokens) != 4 or tokens[0].lower() not in ("arith", "geo"):
+        return _USAGE_SEQ
+    kind = tokens[0].lower()
+    first = _num(tokens[1])
+    step = _num(tokens[2])
+    n_val = _num(tokens[3])
+    if first is None or step is None or n_val is None:
+        return _USAGE_SEQ
+    if n_val != int(n_val) or not 1 <= n_val <= 1000:
+        return "n must be a whole number from 1 to 1000."
+    n = int(n_val)
+    if kind == "arith":
+        term = first + (n - 1) * step
+        total = n / 2 * (2 * first + (n - 1) * step)
+        return (f"Arithmetic: term {n} = {_fmt(term)} (first {_fmt(first)}, "
+                f"difference {_fmt(step)}), sum of the first {n} = {_fmt(total)}.")
+    try:
+        term = first * step ** (n - 1)
+        total = first * n if step == 1 else first * (step ** n - 1) / (step - 1)
+    except OverflowError:
+        return "That grows too big to print — use a smaller n or a ratio nearer 1."
+    if not (math.isfinite(term) and math.isfinite(total)):
+        return "That grows too big to print — use a smaller n or a ratio nearer 1."
+    return (f"Geometric: term {n} = {_fmt(term)} (first {_fmt(first)}, "
+            f"ratio {_fmt(step)}), sum of the first {n} = {_fmt(total)}.")
+
+
 def register_all(registry: SkillRegistry) -> None:
     registry.register(Skill(
         name="linear", description="Solve a linear equation a x + b = c for x.",
@@ -283,3 +415,15 @@ def register_all(registry: SkillRegistry) -> None:
         triggers=["line"],
         run=_run_line,
         examples=["line 0 0 2 4", "line 0 1 2 5", "line 1 2 1 5"]))
+    registry.register(Skill(
+        name="ineq", description="Which x values satisfy a one-variable linear inequality.",
+        usage="ineq <inequality>",
+        triggers=["ineq", "inequality"],
+        run=_run_ineq,
+        examples=["ineq 2x+3>7", "ineq -2x+4<10", "ineq 3x-5>=10"]))
+    registry.register(Skill(
+        name="seq", description="Nth term and sum of an arithmetic or geometric sequence.",
+        usage="seq arith <first> <difference> <n> | seq geo <first> <ratio> <n>",
+        triggers=["seq", "sequence"],
+        run=_run_seq,
+        examples=["seq arith 3 5 10", "seq geo 2 3 5", "seq geo 5 1 7"]))

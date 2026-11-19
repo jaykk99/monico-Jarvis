@@ -9,7 +9,7 @@ def _ask(text: str) -> str:
 
 
 def test_skill_count():
-    assert len(agent.list_skills()) == 150
+    assert len(agent.list_skills()) == 152
 
 
 # ---------------------------------------------------------------- force

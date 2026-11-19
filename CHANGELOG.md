@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.30.0 (2026-11-19) — algebra III skills
+
+**2 new keyless skills** (152 total) in `skills/algebra.py`:
+
+- `ineq` — which x values satisfy a one-variable linear inequality
+  (`ineq 2x+3>7` = x > 2; dividing by a negative flips the sign,
+  `ineq -2x+4<10` = x > -3; <, >, <=, >= all work, and x terms on
+  both sides are handled)
+- `seq` — nth term and sum of an arithmetic or geometric sequence
+  (`seq arith 3 5 10` = term 48, sum 255; `seq geo 2 3 5` = term 162,
+  sum 242; ratio 1 and fractional ratios handled, n is 1–1000)
+
+These are the two genuinely new skills from the held Nov 18 branch:
+its `solve` and `quad` duplicated the v2.29.0 `linear` and `quadratic`
+skills (same triggers) and were left out on purpose. All skill-count
+assertions in `tests/` now expect 152.
+
 ## v2.29.0 (2026-11-18) — algebra + statistics II skills
 
 **8 new keyless skills** (150 total) in `skills/algebra.py` and
