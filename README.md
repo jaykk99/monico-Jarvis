@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.31.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (154 skills).
+Working app (v2.32.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (158 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress), `algebra.py` (linear, quadratic, simul, line, ineq, seq, gcd, ratio), `statistics.py` (zscore, weighted, movavg, quartile) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress), `algebra.py` (linear, quadratic, simul, line, ineq, seq, gcd, ratio, exponent, logarithm, scientific, factorquad), `statistics.py` (zscore, weighted, movavg, quartile) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -230,6 +230,10 @@ Algebra (textbook formulas only — real roots only where stated; a vertical lin
 - `seq arith <first> <difference> <n>` / `seq geo <first> <ratio> <n>` — nth term and sum of an arithmetic or geometric sequence (`seq arith 3 5 10` = term 48, sum 255; `seq geo 2 3 5` = term 162, sum 242)
 - `gcd <a> <b>` — greatest common divisor and least common multiple of two whole numbers (`gcd 12 18` = GCD 6, LCM 36; coprime numbers give GCD 1)
 - `ratio <a> <b>` / `ratio <a> <b> <c>` — simplify a ratio to lowest terms (`ratio 12 18` = 2:3) or solve a proportion (`ratio 3 4 12` = 12:16)
+- `exponent <base> <power>` — powers, including negative and fractional ones (`exponent 2 10` = 1,024; `exponent 9 0.5` = 3), plus same-base rules (`exponent 2 3 * 4` = 2^7 = 128)
+- `log <value>` / `log <value> <base>` / `log ln <value>` — logarithms, base 10 by default (`log 100` = 2; `log 8 2` = 3; `log ln 10` = 2.303)
+- `sci <number>` / `sci <mantissa> <exponent>` — scientific notation both ways (`sci 1234567` = 1.235 x 10^6; `sci 1.5 6` = 1,500,000)
+- `factorquad <a> <b> <c>` — factor a quadratic over the integers when it factors (`factorquad 1 -3 2` = (x - 2)(x - 1); unfactorable ones say so with the discriminant)
 
 Statistics II (textbook formulas only — builds on `stats` and `percentile`; a z-score or quartile describes the list you give, not the wider population):
 

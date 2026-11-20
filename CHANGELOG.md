@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.32.0 (2026-11-20) — algebra V skills
+
+**4 new keyless skills** (158 total) in `skills/algebra.py`:
+
+- `exponent` — powers a^b (`exponent 2 10` = 1,024; `exponent 2 -3` =
+  0.125; `exponent 9 0.5` = 3), plus same-base multiply/divide rules
+  (`exponent 2 3 * 4` = 2^7 = 128; `exponent 2 5 / 2` = 2^3 = 8;
+  0^0, 0 to a negative power, and negative bases to fractional
+  powers rejected with a reason; huge results refused, not dumped)
+- `logarithm` — log base 10 by default (`log 100` = 2), any base
+  (`log 8 2` = 3), or the natural log (`log ln 10` = 2.303; `ln`
+  works as its own trigger too; non-positive values and base 1 rejected)
+- `scientific` — scientific notation both ways (`sci 1234567` =
+  1.235 x 10^6; `sci 0.00042` = 4.2 x 10^-4; `sci 1.5 6` =
+  1,500,000; zero handled)
+- `factorquad` — factor a quadratic over the integers
+  (`factorquad 1 -3 2` = (x - 2)(x - 1); `factorquad 2 7 3` =
+  (2x + 1)(x + 3); `factorquad 1 0 -9` = (x - 3)(x + 3); negative
+  leading coefficient factored with a leading minus; c = 0 gives
+  x(ax + b); unfactorable quadratics report the discriminant and
+  point at `quadratic`)
+
+All skill-count assertions in `tests/` now expect 158.
+
 ## v2.31.0 (2026-11-19) — algebra IV skills
 
 **2 new keyless skills** (154 total) in `skills/algebra.py`:

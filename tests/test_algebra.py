@@ -1,4 +1,5 @@
-"""Tests for skills/algebra.py: linear, quadratic, simul, line, ineq, seq."""
+"""Tests for skills/algebra.py: linear, quadratic, simul, line, ineq, seq,
+gcd, ratio, exponent, logarithm, scientific, factorquad."""
 from agent import agent
 
 
@@ -9,7 +10,7 @@ def _ask(text: str) -> str:
 
 
 def test_skill_count():
-    assert len(agent.list_skills()) == 154
+    assert len(agent.list_skills()) == 158
 
 
 # ---------------------------------------------------------------- linear
@@ -270,3 +271,104 @@ def test_ratio_bad():
     assert "Usage" in _ask("ratio 12")
     assert "not a ratio" in _ask("ratio 0 0")
     assert "No single answer" in _ask("ratio 0 4 12")
+
+
+# ---------------------------------------------------------------- exponent
+def test_exponent_basic():
+    # 2^10 = 1024; 2^-3 = 1/8; 9^0.5 = 3.
+    assert "2^10 = 1,024." in _ask("exponent 2 10")
+    assert "2^-3 = 0.125." in _ask("exponent 2 -3")
+    assert "9^0.5 = 3." in _ask("exponent 9 0.5")
+
+
+def test_exponent_same_base_rules():
+    # 2^3 x 2^4 = 2^7 = 128; 2^5 / 2^2 = 2^3 = 8.
+    assert "2^3 x 2^4 = 2^7 = 128." in _ask("exponent 2 3 * 4")
+    assert "2^5 / 2^2 = 2^3 = 8." in _ask("exponent 2 5 / 2")
+
+
+def test_exponent_edge_and_bad():
+    assert "not defined" in _ask("exponent 0 0")
+    assert "not defined" in _ask("exponent 0 -2")
+    assert "not a real number" in _ask("exponent -8 0.5")
+    assert "too large" in _ask("exponent 10 400")
+    assert "Usage" in _ask("exponent")
+    assert "Usage" in _ask("exponent 2")
+    assert "Usage" in _ask("exponent 2 x 3")
+
+
+# ---------------------------------------------------------------- logarithm
+def test_log_base10_and_any_base():
+    # log10(100) = 2; log2(8) = 3; log3(81) = 4.
+    assert "log10(100) = 2." in _ask("log 100")
+    assert "log2(8) = 3." in _ask("log 8 2")
+    assert "log3(81) = 4." in _ask("log 81 3")
+
+
+def test_log_natural():
+    # ln(10) = 2.302585... -> 2.303; `ln` works as its own trigger.
+    assert "ln(10) = 2.303." in _ask("log ln 10")
+    assert "ln(10) = 2.303." in _ask("ln 10")
+    assert "ln(1) = 0." in _ask("log ln 1")
+
+
+def test_log_edge_and_bad():
+    assert "not defined" in _ask("log 0")
+    assert "not defined" in _ask("log -5")
+    assert "not 1" in _ask("log 8 1")
+    assert "positive" in _ask("log 8 0")
+    assert "Usage" in _ask("log")
+    assert "Usage" in _ask("log abc")
+
+
+# ---------------------------------------------------------------- scientific
+def test_sci_to_notation():
+    # 1234567 = 1.234567 x 10^6 -> 1.235 x 10^6; 0.00042 = 4.2 x 10^-4.
+    assert "1,234,567 = 1.235 x 10^6." in _ask("sci 1234567")
+    assert "0.00042 = 4.2 x 10^-4." in _ask("sci 0.00042")
+    assert "0 in scientific notation is 0." in _ask("sci 0")
+
+
+def test_sci_expand():
+    # 1.5 x 10^6 = 1,500,000; 2.5 x 10^-3 = 0.0025.
+    assert "1.5 x 10^6 = 1,500,000." in _ask("sci 1.5 6")
+    assert "2.5 x 10^-3 = 0.0025." in _ask("sci 2.5 -3")
+
+
+def test_sci_bad():
+    assert "Usage" in _ask("sci")
+    assert "Usage" in _ask("sci abc")
+    assert "Usage" in _ask("sci 1.5 2.5")
+
+
+# ---------------------------------------------------------------- factorquad
+def test_factorquad_basic():
+    # x^2 - 3x + 2 = (x - 1)(x - 2); 2x^2 + 7x + 3 = (x + 3)(2x + 1).
+    assert "x^2 - 3x + 2 = (x - 1)(x - 2)." in _ask("factorquad 1 -3 2")
+    assert "2x^2 + 7x + 3 = (x + 3)(2x + 1)." in _ask("factorquad 2 7 3")
+
+
+def test_factorquad_difference_of_squares_and_negative():
+    # x^2 - 9 = (x + 3)(x - 3); -x^2 + 5x - 6 = -(x - 2)(x - 3).
+    assert "x^2 - 9 = (x + 3)(x - 3)." in _ask("factorquad 1 0 -9")
+    assert "-x^2 + 5x - 6 = -(x - 2)(x - 3)." in _ask("factorquad -1 5 -6")
+
+
+def test_factorquad_zero_constant():
+    # 2x^2 + 5x = x(2x + 5).
+    assert "2x^2 + 5x = x(2x + 5)." in _ask("factorquad 2 5 0")
+
+
+def test_factorquad_no_integer_factors():
+    # x^2 + 1 has discriminant -4: no integer factors, points at quadratic.
+    out = _ask("factorquad 1 0 1")
+    assert "does not factor over the integers" in out
+    assert "discriminant -4" in out
+    assert "quadratic 1 0 1" in out
+
+
+def test_factorquad_bad():
+    assert "not a quadratic" in _ask("factorquad 0 1 2")
+    assert "Usage" in _ask("factorquad")
+    assert "Usage" in _ask("factorquad 1 2")
+    assert "Usage" in _ask("factorquad 1.5 2 3")

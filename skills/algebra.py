@@ -1,5 +1,6 @@
 """Algebra helpers: linear equations, quadratics, two-equation systems,
-the line through two points, inequalities, and sequences.
+the line through two points, inequalities, sequences, GCD and ratios,
+exponents, logarithms, scientific notation, and factoring quadratics.
 
 All local, keyless, no network — same contract as the rest of skills/.
 Plain textbook algebra for everyday questions: the x that makes a
@@ -36,6 +37,17 @@ Rules used:
 - GCD: Euclid's algorithm; LCM = |a b| / GCD. A ratio a:b in
   lowest terms is a / GCD : b / GCD, and a proportion a:b = c:x
   solves to x = b c / a.
+- Exponents: a^b multiplies a by itself b times; a^0 = 1 (a != 0),
+  a^-b = 1 / a^b, and a^(1/n) is the nth root. Same-base powers
+  multiply by adding exponents: a^m x a^n = a^(m+n).
+- Logarithms: log_b(x) is the power b must be raised to to get x;
+  log10 is the default, ln is base e. log is only defined for
+  x > 0 and a base b > 0 with b != 1.
+- Scientific notation: a number written as m x 10^e with
+  1 <= |m| < 10; the exponent counts how far the decimal point moved.
+- Factoring a quadratic: a x^2 + b x + c factors over the integers
+  only when whole-number pairs (d1, e1) and (d2, e2) exist with
+  d1 d2 = a, e1 e2 = c, and d1 e2 + d2 e1 = b.
 
 Conventions and explicit caveats:
 - A linear or quadratic equation is solved exactly as written —
@@ -52,6 +64,12 @@ Conventions and explicit caveats:
   ratio far from 1 with a large n grows too big to print.
 - `gcd` needs whole numbers; `ratio` works with decimals too, but
   a proportion with a first term of 0 has no single answer.
+- `exponent` with a huge result refuses to print it rather than
+  dumping a wall of digits; 0^0 and 0 to a negative power are not defined.
+- `log` needs a positive value and a base other than 1; `factorquad`
+  only reports a factorisation when the factors are whole numbers.
+- `sci` with two numbers reads them as mantissa and exponent, not
+  as a plain number — `sci 1.5 6` means 1.5 x 10^6.
 """
 from __future__ import annotations
 
@@ -460,6 +478,201 @@ def _run_ratio(trigger: str, args: str) -> str:
             f"so the missing term is {shown}.")
 
 
+# ---------------------------------------------------------------- exponent
+
+_USAGE_EXPONENT = (
+    "Usage: `exponent <base> <power>` — e.g. `exponent 2 10` — or "
+    "`exponent <base> <e1> * <e2>` / `exponent <base> <e1> / <e2>` for "
+    "same-base powers, e.g. `exponent 2 3 * 4`."
+)
+
+
+def _run_exponent(trigger: str, args: str) -> str:
+    tokens = (args or "").split()
+    if len(tokens) == 2:
+        base = _num(tokens[0])
+        power = _num(tokens[1])
+        if base is None or power is None:
+            return _USAGE_EXPONENT
+        if base == 0 and power <= 0:
+            return ("0 to the power 0, or to a negative power, is not defined "
+                    "— give a non-zero base or a positive power.")
+        try:
+            value = base ** power
+        except (OverflowError, ZeroDivisionError):
+            return "That power is too large to print — try a smaller exponent."
+        if isinstance(value, complex):
+            return "A negative base to a fractional power is not a real number — try a whole-number power."
+        if value != value or value in (math.inf, -math.inf):
+            return "That power is too large to print — try a smaller exponent."
+        return f"{_fmt(base)}^{_fmt(power)} = {_fmt(value)}."
+    if len(tokens) == 4 and tokens[2] in ("*", "/"):
+        base = _num(tokens[0])
+        e1 = _num(tokens[1])
+        e2 = _num(tokens[3])
+        if base is None or e1 is None or e2 is None:
+            return _USAGE_EXPONENT
+        if base == 0 and (e1 <= 0 or e2 <= 0):
+            return ("0 to the power 0, or to a negative power, is not defined "
+                    "— give a non-zero base or positive powers.")
+        combined = e1 + e2 if tokens[2] == "*" else e1 - e2
+        try:
+            value = base ** combined
+        except (OverflowError, ZeroDivisionError):
+            return "That power is too large to print — try a smaller exponent."
+        if isinstance(value, complex):
+            return "A negative base to a fractional power is not a real number — try whole-number powers."
+        if value != value or value in (math.inf, -math.inf):
+            return "That power is too large to print — try a smaller exponent."
+        op = "x" if tokens[2] == "*" else "/"
+        return (f"{_fmt(base)}^{_fmt(e1)} {op} {_fmt(base)}^{_fmt(e2)} = "
+                f"{_fmt(base)}^{_fmt(combined)} = {_fmt(value)}.")
+    return _USAGE_EXPONENT
+
+
+# ---------------------------------------------------------------- logarithm
+
+_USAGE_LOG = (
+    "Usage: `log <value>` for log base 10 — e.g. `log 100` — "
+    "`log <value> <base>` for any base — e.g. `log 8 2` — or "
+    "`log ln <value>` for the natural log — e.g. `log ln 10`."
+)
+
+
+def _run_log(trigger: str, args: str) -> str:
+    tokens = (args or "").split()
+    if trigger == "ln":
+        tokens = ["ln"] + tokens
+    if len(tokens) == 1:
+        value = _num(tokens[0])
+        if value is None:
+            return _USAGE_LOG
+        if value <= 0:
+            return "A logarithm needs a positive value — log of 0 or a negative number is not defined."
+        return f"log10({_fmt(value)}) = {_fmt(math.log10(value))}."
+    if len(tokens) == 2:
+        if tokens[0] == "ln":
+            value = _num(tokens[1])
+            if value is None:
+                return _USAGE_LOG
+            if value <= 0:
+                return "A logarithm needs a positive value — log of 0 or a negative number is not defined."
+            return f"ln({_fmt(value)}) = {_fmt(math.log(value))}."
+        value = _num(tokens[0])
+        base = _num(tokens[1])
+        if value is None or base is None:
+            return _USAGE_LOG
+        if value <= 0:
+            return "A logarithm needs a positive value — log of 0 or a negative number is not defined."
+        if base <= 0 or base == 1:
+            return "The log base must be positive and not 1 — try base 10, 2, or e."
+        return f"log{_fmt(base)}({_fmt(value)}) = {_fmt(math.log(value, base))}."
+    return _USAGE_LOG
+
+
+# ---------------------------------------------------------------- scientific
+
+_USAGE_SCI = (
+    "Usage: `sci <number>` writes it in scientific notation — e.g. "
+    "`sci 1234567` — or `sci <mantissa> <exponent>` expands it — "
+    "e.g. `sci 1.5 6`."
+)
+
+
+def _run_sci(trigger: str, args: str) -> str:
+    tokens = (args or "").split()
+    if len(tokens) == 1:
+        value = _num(tokens[0])
+        if value is None:
+            return _USAGE_SCI
+        if value == 0:
+            return "0 in scientific notation is 0."
+        exponent = math.floor(math.log10(abs(value)))
+        mantissa = value / (10 ** exponent)
+        if abs(mantissa) >= 10:  # float rounding at a power-of-10 boundary
+            mantissa /= 10
+            exponent += 1
+        return f"{_fmt(value)} = {_fmt(mantissa)} x 10^{exponent}."
+    if len(tokens) == 2:
+        mantissa = _num(tokens[0])
+        exponent = _num(tokens[1])
+        if mantissa is None or exponent is None or exponent != int(exponent):
+            return _USAGE_SCI
+        try:
+            value = mantissa * (10 ** int(exponent))
+        except OverflowError:
+            return "That exponent is too large to print — try a smaller one."
+        if value in (math.inf, -math.inf):
+            return "That exponent is too large to print — try a smaller one."
+        return f"{_fmt(mantissa)} x 10^{int(exponent)} = {_fmt(value)}."
+    return _USAGE_SCI
+
+
+# ---------------------------------------------------------------- factorquad
+
+_USAGE_FACTORQUAD = (
+    "Usage: `factorquad <a> <b> <c>` factors a x^2 + b x + c over the "
+    "integers — e.g. `factorquad 1 -3 2`. a, b, and c must be whole numbers."
+)
+
+
+def _divisors(n: int) -> list[int]:
+    n = abs(n)
+    divs: list[int] = []
+    d = 1
+    while d * d <= n:
+        if n % d == 0:
+            divs.append(d)
+            if d * d != n:
+                divs.append(n // d)
+        d += 1
+    return sorted(divs)
+
+
+def _binomial(d: int, e: int) -> str:
+    """One linear factor, e.g. (2x + 3), (x - 1), (x + 5)."""
+    left = "x" if d == 1 else f"{d}x"
+    if e == 0:
+        return left
+    return f"{left} + {e}" if e > 0 else f"{left} - {-e}"
+
+
+def _run_factorquad(trigger: str, args: str) -> str:
+    tokens = (args or "").split()
+    if len(tokens) != 3:
+        return _USAGE_FACTORQUAD
+    try:
+        a, b, c = (int(t) for t in tokens)
+    except ValueError:
+        return _USAGE_FACTORQUAD
+    if a == 0:
+        return "That is not a quadratic — the x^2 coefficient is 0, so there is nothing to factor."
+    lhs = _signed_terms([(a, "x^2"), (b, "x"), (c, "")])
+    if c == 0:
+        inner = _signed_terms([(a, "x"), (b, "")])
+        return f"{lhs} = x({inner})."
+    sign = ""
+    aa, bb, cc = a, b, c
+    if aa < 0:
+        sign = "-"
+        aa, bb, cc = -aa, -bb, -cc
+    for d1 in _divisors(aa):
+        d2 = aa // d1
+        for e1 in _divisors(cc):
+            for e1s in (e1, -e1):
+                if cc % e1s != 0:
+                    continue
+                e2 = cc // e1s
+                if d1 * e2 + d2 * e1s == bb:
+                    return (f"{lhs} = {sign}({_binomial(d1, e1s)})"
+                            f"({_binomial(d2, e2)}).")
+    disc = b * b - 4 * a * c
+    return (f"{lhs} does not factor over the integers "
+            f"(discriminant {disc} is not a perfect square, or no "
+            f"whole-number factor pair fits) — try `quadratic {a} {b} {c}` "
+            f"for its roots instead.")
+
+
 def register_all(registry: SkillRegistry) -> None:
     registry.register(Skill(
         name="linear", description="Solve a linear equation a x + b = c for x.",
@@ -509,3 +722,27 @@ def register_all(registry: SkillRegistry) -> None:
         triggers=["ratio", "proportion"],
         run=_run_ratio,
         examples=["ratio 12 18", "ratio 1.5 2.5", "ratio 3 4 12"]))
+    registry.register(Skill(
+        name="exponent", description="Powers a^b, including negative and fractional powers and same-base power rules.",
+        usage="exponent <base> <power> | exponent <base> <e1> *|/ <e2>",
+        triggers=["exponent", "exp"],
+        run=_run_exponent,
+        examples=["exponent 2 10", "exponent 2 -3", "exponent 9 0.5", "exponent 2 3 * 4"]))
+    registry.register(Skill(
+        name="logarithm", description="Logarithms: base 10 by default, any base, or the natural log.",
+        usage="log <value> | log <value> <base> | log ln <value>",
+        triggers=["log", "logarithm", "ln"],
+        run=_run_log,
+        examples=["log 100", "log 8 2", "log ln 10"]))
+    registry.register(Skill(
+        name="scientific", description="Write a number in scientific notation, or expand one back out.",
+        usage="sci <number> | sci <mantissa> <exponent>",
+        triggers=["sci", "scientific", "scinote"],
+        run=_run_sci,
+        examples=["sci 1234567", "sci 0.00042", "sci 1.5 6"]))
+    registry.register(Skill(
+        name="factorquad", description="Factor a quadratic a x^2 + b x + c over the integers when it factors.",
+        usage="factorquad <a> <b> <c>",
+        triggers=["factorquad", "factorise", "factorize"],
+        run=_run_factorquad,
+        examples=["factorquad 1 -3 2", "factorquad 2 7 3", "factorquad 1 0 -9"]))
