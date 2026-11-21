@@ -6,7 +6,7 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 ## Status
 
 Working app (v2.32.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (158 skills).
+chat commands through a real plugin-style skill registry (162 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress), `algebra.py` (linear, quadratic, simul, line, ineq, seq, gcd, ratio, exponent, logarithm, scientific, factorquad), `statistics.py` (zscore, weighted, movavg, quartile) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress), `algebra.py` (linear, quadratic, simul, line, ineq, seq, gcd, ratio, exponent, logarithm, scientific, factorquad), `calculus.py` (deriv, integral, limit, tangent), `statistics.py` (zscore, weighted, movavg, quartile) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -234,6 +234,13 @@ Algebra (textbook formulas only — real roots only where stated; a vertical lin
 - `log <value>` / `log <value> <base>` / `log ln <value>` — logarithms, base 10 by default (`log 100` = 2; `log 8 2` = 3; `log ln 10` = 2.303)
 - `sci <number>` / `sci <mantissa> <exponent>` — scientific notation both ways (`sci 1234567` = 1.235 x 10^6; `sci 1.5 6` = 1,500,000)
 - `factorquad <a> <b> <c>` — factor a quadratic over the integers when it factors (`factorquad 1 -3 2` = (x - 2)(x - 1); unfactorable ones say so with the discriminant)
+
+Calculus (textbook formulas only — coefficients highest-degree first; the point goes after `at`, bounds after `from`/`to`):
+
+- `deriv <coefficients> at <x>` — derivative of a polynomial at a point, with rising/falling/flat (`deriv 1 -3 2 at 4` = f'(4) = 5, rising; `deriv 3 0 -2 5 at 1` = 7; a constant has derivative 0)
+- `integral <coefficients> from <lo> to <hi>` — definite integral of a polynomial, signed area (`integral 1 0 0 from 0 to 3` = 9, antiderivative x^3/3; backwards bounds flip the sign; parts below the x-axis count negative)
+- `limit <coefficients> at <x>` / `limit <top> / <bottom> at <x>` — limit of a polynomial or a ratio of polynomials (`limit 1 -3 2 at 4` = 6; `limit 1 0 -1 / 1 -1 at 1` = 2, a hole where (x - 1) cancels; a zero denominator with a non-zero numerator has no finite limit)
+- `tangent <coefficients> at <x>` — tangent line to a polynomial at a point (`tangent 1 0 0 at 2` = y = 4x - 4; a zero slope is a horizontal tangent, a straight line is its own tangent)
 
 Statistics II (textbook formulas only — builds on `stats` and `percentile`; a z-score or quartile describes the list you give, not the wider population):
 

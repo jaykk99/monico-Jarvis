@@ -9,7 +9,7 @@ def _ask(text: str) -> str:
 
 
 def test_skill_count():
-    assert len(agent.list_skills()) == 158
+    assert len(agent.list_skills()) == 162
 
 
 # ---------------------------------------------------------------- percentile

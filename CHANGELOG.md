@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.33.0 (2026-11-21) — calculus skills
+
+**4 new keyless skills** (162 total) in `skills/calculus.py`:
+
+- `deriv` — derivative of a polynomial at a point, power rule
+  (`deriv 1 -3 2 at 4` = f'(4) = 5, rising; `deriv 3 0 -2 5 at 1` =
+  7; `deriv 2 1 at 3` = 2; a constant has derivative 0 and is flat;
+  `derivative` works as an alias trigger; any degree, coefficients
+  highest-degree first)
+- `integral` — definite integral of a polynomial between two bounds
+  (`integral 1 0 0 from 0 to 3` = 9, antiderivative x^3/3 in exact
+  fractions; `integral 2 0 from 0 to 4` = 16; `integral 1 0 from -1
+  to 1` = 0, the halves cancel; backwards bounds flip the sign and
+  say so; negative answers are flagged as signed area, not total
+  area; `integrate` works as an alias trigger)
+- `limit` — limit of a polynomial, or of a ratio of polynomials, at
+  a point (`limit 1 -3 2 at 4` = 6, polynomials are continuous;
+  `limit 1 0 -1 / 1 -1 at 1` = 2, (x - 1) cancels once, a hole;
+  `limit 1 0 -4 / 1 -2 at 2` = 4; `limit 1 0 / 1 -1 at 1` has no
+  finite limit, the function grows without bound; direct
+  substitution when the denominator is not 0)
+- `tangent` — tangent line to a polynomial at a point
+  (`tangent 1 0 0 at 2` = y = 4x - 4 through (2, 4) with slope 4;
+  `tangent 1 -3 2 at 1.5` is horizontal, y = -0.25; a straight line
+  is its own tangent; `tangentline` works as an alias trigger)
+
+All skill-count assertions in `tests/` now expect 162.
+
 ## v2.32.0 (2026-11-20) — algebra V skills
 
 **4 new keyless skills** (158 total) in `skills/algebra.py`:
