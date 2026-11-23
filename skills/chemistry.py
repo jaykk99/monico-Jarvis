@@ -86,11 +86,19 @@ def _fmt(x: float) -> str:
 
 
 def _num(token: str) -> float | None:
-    """Parse a plain number, tolerating thousands commas."""
+    """Parse a plain number, tolerating thousands commas.
+
+    Rejects non-finite values: float("nan") and float("1e999") (= inf)
+    both parse, and a NaN/inf slipping through crashed callers —
+    _fmt(inf) raises OverflowError out of int(inf) and round(nan)
+    raises ValueError in the empirical multiplier loop. A number the
+    skills cannot use is a usage error, not a crash.
+    """
     try:
-        return float(token.strip().replace(",", ""))
+        value = float(token.strip().replace(",", ""))
     except ValueError:
         return None
+    return value if math.isfinite(value) else None
 
 
 def _too_big() -> str:

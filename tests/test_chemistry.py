@@ -222,3 +222,19 @@ def test_halflife_bad():
     assert "Usage" in _ask("halflife")
     assert "Usage" in _ask("halflife 100 after 10")
     assert "Usage" in _ask("halflife 100 x 3")
+
+
+# ---------------------------------------------------------------- non-finite input
+def test_non_finite_numbers_are_usage_not_a_crash():
+    # float("nan") and float("1e999") (= inf) both parse, and used to
+    # crash callers: _fmt(inf) raises OverflowError out of int(inf),
+    # round(nan) raises ValueError in the empirical multiplier loop.
+    # Every skill answers with its usage text instead now.
+    assert "Usage" in _ask("empirical C nan H 50")
+    assert "Usage" in _ask("empirical C 1e999 H 50")
+    assert "Usage" in _ask("gaslaw P nan V 5 n 0.5 T ?")
+    assert "Usage" in _ask("gaslaw P 1e999 V 5 n 0.5 T ?")
+    assert "Usage" in _ask("dilute M1 nan V1 100 M2 0.5 V2 ?")
+    assert "Usage" in _ask("titrate nan 25 1 1 10")
+    assert "Usage" in _ask("halflife nan n 3")
+    assert "Usage" in _ask("halflife 100 n inf")
