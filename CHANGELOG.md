@@ -1,5 +1,42 @@
 # Changelog
 
+## v2.34.0 (2026-11-23) — chemistry skills
+
+**7 new keyless skills** (169 total) in `skills/chemistry.py`:
+
+- `molarmass` — molar mass of a compound from its formula
+  (`molarmass H2O` = 18.02 g/mol; `molarmass Ca(OH)2` = 74.09
+  g/mol; `molarmass Al2(SO4)3` = 342.1 g/mol; parentheses with
+  multipliers supported; `molar` works as an alias trigger; 60
+  most common elements in the table, unknown symbols reported)
+- `pctcomp` — percent composition by mass (`pctcomp H2O` = H
+  11.19%, O 88.81%; `pctcomp C6H12O6` = C 40%, H 6.714%, O
+  53.28%; `composition` works as an alias trigger)
+- `empirical` — empirical formula from percent composition
+  (`empirical C 40 H 6.7 O 53.3` = CH2O; `empirical C 92.3 H 7.7`
+  = CH; `empirical Na 39.3 Cl 60.7` = NaCl; percents that do not
+  add up to about 100 are refused; `empformula` works as an alias
+  trigger)
+- `gaslaw` — ideal gas law PV = nRT, solve for any one variable
+  (`gaslaw P 2 V 5 n 0.5 T ?` = T 243.7 K; `gaslaw P ? V 10 n 1
+  T 300` = P 2.462 atm; 1 mol at 1 atm in 22.4 L gives T 273 K;
+  pressures above 10 atm carry an ideal-gas warning; `idealgas`
+  works as an alias trigger)
+- `dilute` — dilution M1V1 = M2V2, solve for any one value
+  (`dilute M1 2 V1 100 M2 0.5 V2 ?` = V2 400, add 300 of solvent;
+  `dilute M1 ? V1 25 M2 0.1 V2 250` = M1 1 M; `dilute M1 1 V1 50
+  M2 ? V2 200` = M2 0.25 M; `dilution` works as an alias trigger)
+- `titrate` — base concentration at the equivalence point
+  (`titrate 0.1 25 1 1 10` = base 0.25 M; `titrate 0.5 20 1 2 40`
+  = base 0.5 M; `titrate 0.1 50 2 1 25` = base 0.1 M; whole-number
+  coefficients from the balanced equation; `titration` works as
+  an alias trigger)
+- `halflife` — amount left after half-lives (`halflife 100 n 3` =
+  12.5 left, 87.5 decayed; `halflife 100 after 10 hl 5.27` =
+  1.898 half-lives, 26.84 left; `decay` works as an alias trigger)
+
+All skill-count assertions in `tests/` now expect 169.
+
 ## v2.33.0 (2026-11-21) — calculus skills
 
 **4 new keyless skills** (162 total) in `skills/calculus.py`:
