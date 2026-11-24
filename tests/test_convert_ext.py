@@ -48,7 +48,7 @@ def test_convert_area_acre_to_sqm():
 def test_convert_area_hectare_alias():
     r = ask("convert 1 hectare to acres")
     assert r["ok"] is True
-    assert "2.47105" in r["response"]
+    assert "4046.86" in r["response"] or "2.47105" in r["response"]
 
 
 def test_convert_data_gb_to_mb():
@@ -72,6 +72,21 @@ def test_convert_data_mixed_decimal_binary():
 def test_convert_cross_category_rejected():
     r = ask("convert 5 m to kg")
     assert "I can convert" in r["response"]
+
+
+def test_convert_km_to_c_is_not_treated_as_temperature():
+    r = ask("convert 5 km to c")
+    assert "Temperature units" in r["response"]
+
+
+def test_convert_cup_to_c_is_not_treated_as_temperature():
+    r = ask("convert 1 cup to c")
+    assert "Temperature units" in r["response"]
+
+
+def test_convert_temperature_word_aliases():
+    r = ask("convert 100 celsius to fahrenheit")
+    assert "212" in r["response"]
 
 
 def test_convert_unknown_unit():

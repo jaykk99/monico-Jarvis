@@ -336,6 +336,8 @@ _DATA_TO_B = {
     "tib": 1024.0 ** 4,
 }
 _TEMP_UNITS = {"c", "f", "k", "celsius", "fahrenheit", "kelvin"}
+_TEMP_ALIASES = {"celsius": "c", "fahrenheit": "f", "kelvin": "k"}
+_TEMP_SYMBOLS = {"c", "f", "k"}
 
 _CONVERT_CATEGORIES = (
     ("length", _LENGTH_TO_M),
@@ -416,10 +418,12 @@ def _run_convert(trigger: str, args: str) -> str:
     frm = _norm_unit(m.group(2))
     to = _norm_unit(m.group(3))
     if frm in _TEMP_UNITS or to in _TEMP_UNITS:
-        if frm[0] not in "cfk" or to[0] not in "cfk":
+        frm_t = _TEMP_ALIASES.get(frm, frm)
+        to_t = _TEMP_ALIASES.get(to, to)
+        if frm_t not in _TEMP_SYMBOLS or to_t not in _TEMP_SYMBOLS:
             return "Temperature units: c, f, k (celsius, fahrenheit, kelvin)."
-        result = _convert_temp(value, frm, to)
-        return f"{_fmt_number(value)}°{frm[0].upper()} = {_fmt_number(result)}°{to[0].upper()}"
+        result = _convert_temp(value, frm_t, to_t)
+        return f"{_fmt_number(value)}°{frm_t.upper()} = {_fmt_number(result)}°{to_t.upper()}"
     for _label, table in _CONVERT_CATEGORIES:
         if frm in table and to in table:
             result = value * table[frm] / table[to]
