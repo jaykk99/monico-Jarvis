@@ -1,5 +1,51 @@
 # Changelog
 
+## v2.35.0 (2026-11-24) — biology skills
+
+**7 new keyless skills** (176 total) in `skills/biology.py`:
+
+- `dna` — DNA complement, reverse complement, GC content,
+  transcription, and translation with the standard genetic code
+  (`dna complement ATGC` = TACG; `dna revcomp ATGC` = GCAT;
+  `dna gc ATGC` = 50%; `dna transcribe ATGC` = AUGC;
+  `dna translate ATGGCTTAA` = MA (Met-Ala), stopped at the stop
+  codon; `genecode` works as an alias trigger; RNA input with a U
+  is refused with a pointer to transcription, and a trailing
+  partial codon is reported, not silently translated)
+- `punnett` — monohybrid Punnett square with genotype and
+  phenotype ratios (`punnett Aa x Aa` = 1 AA : 2 Aa : 1 aa, 3
+  dominant : 1 recessive; `punnett AA x aa` = 4 Aa, all dominant;
+  `punnett Aa x aa` = 2 Aa : 2 aa, 50/50 phenotype; `cross`
+  works as an alias trigger; two different genes are refused)
+- `hardy` — Hardy-Weinberg allele and genotype frequencies
+  (`hardy p 0.6` = AA 0.36, Aa 0.48, aa 0.16; `hardy q 0.3` =
+  p 0.7, AA 0.49, Aa 0.42, aa 0.09; `hardy AA 360 Aa 480 aa 160`
+  = p 0.6, q 0.4, expected counts match the observed exactly;
+  `hardyweinberg` works as an alias trigger; equilibrium
+  assumptions stated in the answer)
+- `popgrowth` — exponential and logistic population growth, and
+  doubling time (`popgrowth 100 r 0.05 t 10` = 164.9, doubling
+  every 13.86 time units; `popgrowth logistic 100 1000 r 0.1 t 20`
+  = 450.9, levelling off at K 1,000; `popgrowth double r 0.05` =
+  13.86; `population` works as an alias trigger; starting at or
+  above K is refused)
+- `enzyme` — Michaelis-Menten kinetics (`enzyme vmax 100 km 2
+  s 2` = v 50, exactly half Vmax at [S] = Km; `enzyme vmax 100
+  km 2 s 0.5` = v 20, not 25; `enzyme vmax 100 km 2 v 50` =
+  [S] 2; `michaelis` works as an alias trigger; a rate at or
+  above Vmax is refused as unreachable)
+- `blood` — ABO/Rh transfusion compatibility (`blood O-` =
+  universal donor, gives to all 8 types, receives only O-;
+  `blood AB+` = universal recipient; `blood O- to AB+` = yes;
+  `blood A+ to B+` = no; `bloodtype` works as an alias trigger;
+  answers carry the crossmatching caveat)
+- `osmosis` — water potential (`osmosis 0.3M` = Psi_s -0.7436
+  MPa at 25 C; `osmosis 0.3M i 2` = -1.487 MPa; `osmosis 0.3M
+  20C` = -0.7312 MPa; `osmosis total -0.7 -0.3` = Psi -1 MPa;
+  `waterpotential` works as an alias trigger)
+
+All skill-count assertions in `tests/` now expect 176.
+
 ## v2.34.0 (2026-11-23) — chemistry skills
 
 **7 new keyless skills** (169 total) in `skills/chemistry.py`:

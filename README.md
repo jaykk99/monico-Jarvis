@@ -5,8 +5,8 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.32.0), **deploy-ready**: boots, serves a console UI, and routes
-chat commands through a real plugin-style skill registry (169 skills).
+Working app (v2.35.0), **deploy-ready**: boots, serves a console UI, and routes
+chat commands through a real plugin-style skill registry (176 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)
 for the one-tap checklist (Fly.io config already in repo).
@@ -18,7 +18,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `main.py` | FastAPI app: console UI at `/`, JSON API (`/health`, `/ready`, `/skills`, `/capabilities`, `POST /chat`); request-id + security headers, per-IP rate limiting on `/chat` |
 | `config.py` | Env-driven settings with safe defaults (see `.env.example`) |
 | `agent.py` | `MonicoAgent`: command router over the skill registry, optional skill disabling |
-| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress), `algebra.py` (linear, quadratic, simul, line, ineq, seq, gcd, ratio, exponent, logarithm, scientific, factorquad), `calculus.py` (deriv, integral, limit, tangent), `statistics.py` (zscore, weighted, movavg, quartile), `chemistry.py` (molarmass, pctcomp, empirical, gaslaw, dilute, titrate, halflife) |
+| `skills/` | Plugin-style skills: `base.py` (Skill/registry), `builtin.py` (core), `texttools.py` (text utils), `productivity.py` (tools), `utilities.py` (color, age, lorem, slug), `moretools.py` (morse, roman, loan, system, epoch, tz, shuffle, countdown, prime), `everyday.py` (tip, discount, bmi, base, weekday, moon), `finance.py` (paycheck, compound, budget, savings), `household.py` (unitprice, pace, sleep, grade), `life.py` (split, fuel, readtime, water), `practical.py` (percent, paint, tiles, commute), `diy.py` (concrete, mulch, wallpaper, sod), `yard.py` (fence, gravel, firewood, deck), `build.py` (insulation, drywall, gutter, roof), `interior.py` (siding, floor, studs, brick), `finish.py` (trim, caulk, grout, adhesive), `plumb.py` (pipe, slope, tank, fill), `electric.py` (watts, circuit, bulb, runtime), `garden.py` (soil, seed, planter, spacing), `cook.py` (recipe, bake, roast, serving), `health.py` (calorie, heartrate, steps, workout), `travel.py` (distance, pack, jetlag, luggage), `weather.py` (windchill, heatindex, dewpoint, humidex), `car.py` (brake, tire, oil, tow), `school.py` (final, gpa, study, exam), `sports.py` (batting, era, qbrating, handicap), `music.py` (chord, musicscale, tempo, transpose), `science.py` (ph, moles, energy, density), `physics.py` (force, speed, pressure, wave), `geometry.py` (circle, triangle, trig, coord), `probability.py` (percentile, prob, odds, regress), `algebra.py` (linear, quadratic, simul, line, ineq, seq, gcd, ratio, exponent, logarithm, scientific, factorquad), `calculus.py` (deriv, integral, limit, tangent), `statistics.py` (zscore, weighted, movavg, quartile), `chemistry.py` (molarmass, pctcomp, empirical, gaslaw, dilute, titrate, halflife), `biology.py` (dna, punnett, hardy, popgrowth, enzyme, blood, osmosis) |
 | `static/` | Jarvis console UI (dark/light theme, voice-wave canvas, mic input via Web Speech API, TTS voice picker, command history, chat export, skill search) |
 | `api/index.py` | Vercel serverless entrypoint (re-exports the app; note: stateful skills need a real server, not serverless) |
 | `Dockerfile` | Production image: non-root user, `HEALTHCHECK` on `/ready`, `/app/data` volume, `uvicorn main:app` on port 8000 |
@@ -26,7 +26,7 @@ for the one-tap checklist (Fly.io config already in repo).
 | `fly.toml` | Fly.io deploy config (Dockerfile build, `/ready` health check, auto stop/start) |
 | `vercel.json` | Vercel config — modern `rewrites` format (the old deprecated `builds` syntax was removed) |
 | `docs/DEPLOY.md` | Hosting decision guide: Fly vs Railway vs Render vs VPS vs Vercel, exact deploy steps |
-| `tests/` | 489 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
+| `tests/` | 708 pytest tests: endpoints, every skill, config fallbacks, `/ready` 200/503, security headers, rate limiting, validation, structured errors |
 
 ## Skills (all local, keyless)
 
@@ -206,6 +206,16 @@ Physics (textbook formulas only — steady speeds, even force spread, no frictio
 - `pressure <force> <area>` / `pressure <value> <unit> to <unit>` — pressure P = F / A, or a pressure unit conversion in Pa, kPa, MPa, bar, atm, psi, mmHg (`pressure 100N 2m2`, `pressure 1 atm to psi`, `pressure 100 kPa to Pa`; force spread evenly, gauge vs absolute not distinguished)
 - `wave <frequency> <speed>` / `wave freq <wavelength> <speed>` / `wave period <frequency>` / `wave light <wavelength>` — wavelength from v = f x lambda, frequency, period T = 1 / f, or light frequency from a wavelength (`wave 440Hz 343`, `wave freq 2m 343`, `wave period 440Hz`, `wave light 500nm`; sound speed is 343 m/s at 20 C, light in vacuum)
 
+Biology (textbook biology only — sequences and numbers come from you, no lab lookup):
+
+- `dna complement <seq>` / `dna revcomp <seq>` / `dna gc <seq>` / `dna transcribe <seq>` / `dna translate <seq>` — DNA complement, reverse complement, GC content, transcription to RNA, and translation to protein with the standard genetic code (`dna complement ATGC`, `dna revcomp ATGC`, `dna gc ATGC`, `dna transcribe ATGC`, `dna translate ATGGCTTAA`; TAA, TAG, and TGA stop translation; a trailing partial codon is reported, not silently translated)
+- `punnett <genotype> x <genotype>` — monohybrid Punnett square with genotype and phenotype ratios (`punnett Aa x Aa`, `punnett AA x aa`, `punnett Aa x aa`; one gene, two alleles — two different genes are refused)
+- `hardy p <freq>` / `hardy q <freq>` / `hardy AA <n> Aa <n> aa <n>` — Hardy-Weinberg genotype frequencies from an allele frequency, or allele frequencies and expected counts from genotype counts (`hardy p 0.6`, `hardy q 0.3`, `hardy AA 360 Aa 480 aa 160`; assumes random mating, no selection, no mutation, no migration, large population)
+- `popgrowth <N0> r <rate> t <time>` / `popgrowth logistic <N0> <K> r <rate> t <time>` / `popgrowth double r <rate>` — exponential growth N = N0 e^(rt), logistic growth levelling off at carrying capacity K, or doubling time (`popgrowth 100 r 0.05 t 10`, `popgrowth logistic 100 1000 r 0.1 t 20`, `popgrowth double r 0.05`; exponential growth never levels off)
+- `enzyme vmax <Vmax> km <Km> s <substrate>` / `enzyme vmax <Vmax> km <Km> v <rate>` — Michaelis-Menten reaction rate, or the substrate concentration for a rate (`enzyme vmax 100 km 2 s 2`, `enzyme vmax 100 km 2 v 50`; at [S] = Km the rate is half of Vmax; a rate at or above Vmax is unreachable)
+- `blood <type>` / `blood <donor> to <recipient>` — blood-type donation compatibility (`blood O-`, `blood A+`, `blood O- to AB+`, `blood A+ to B+`; standard transfusion rules, not medical advice for a real transfusion — crossmatching still applies)
+- `osmosis <concentration>M [i <factor>] [<temp>C]` / `osmosis total <Psi_s> <Psi_p>` — solute potential Psi_s = -iCRT, or total water potential Psi = Psi_s + Psi_p (`osmosis 0.3M`, `osmosis 0.3M i 2`, `osmosis total -0.7 -0.3`; water moves from higher to lower water potential)
+
 Geometry (textbook formulas only — lengths in whatever unit you give, angles in degrees):
 
 - `circle r<radius>` / `circle d<diameter>` / `circle c<circumference>` / `circle a<area>` — radius, diameter, circumference, and area from any one measurement (`circle r5`, `circle d10`, `circle c31.42`, `circle a78.54`; C = 2 pi r, A = pi r^2)
@@ -294,7 +304,7 @@ No API keys needed — every skill runs locally on the phone.
 
 ```bash
 pip install -r requirements-dev.txt
-pytest tests/ -q   # 489 tests
+pytest tests/ -q   # 708 tests
 ```
 
 ## Deploy
