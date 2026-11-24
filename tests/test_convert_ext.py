@@ -48,7 +48,7 @@ def test_convert_area_acre_to_sqm():
 def test_convert_area_hectare_alias():
     r = ask("convert 1 hectare to acres")
     assert r["ok"] is True
-    assert "4046.86" in r["response"] or "2.47105" in r["response"]
+    assert "2.47105" in r["response"]
 
 
 def test_convert_data_gb_to_mb():
