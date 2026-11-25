@@ -10,7 +10,7 @@ def _ask(text: str) -> str:
 
 
 def test_skill_count():
-    assert len(agent.list_skills()) == 176
+    assert len(agent.list_skills()) == 183
 
 
 # ---------------------------------------------------------------- linear

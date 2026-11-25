@@ -5,7 +5,7 @@ Cloud-hosted Jarvis-like personal AI agent — FastAPI + a Jarvis-style console 
 
 ## Status
 
-Working app (v2.35.0), **deploy-ready**: boots, serves a console UI, and routes
+Working app (v2.36.0), **deploy-ready**: boots, serves a console UI, and routes
 chat commands through a real plugin-style skill registry (176 skills).
 Honest about what it can't do — see `GET /capabilities`.
 Blocked only on Jay's hosting decision — see [docs/DEPLOY.md](docs/DEPLOY.md)

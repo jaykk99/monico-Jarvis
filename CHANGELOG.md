@@ -1,5 +1,39 @@
 # Changelog
 
+## v2.36.0 (2026-11-25) — astronomy skills
+
+**7 new keyless skills** (183 total) in `skills/astronomy.py`:
+
+- `planet` — planet facts (`planet mars` = 1.524 AU, 687-day year,
+  6,779 km, 2 moons, -65 C, 24.6-hour day; `planets` works as an
+  alias trigger; Venus and Uranus are flagged retrograde; moon
+  counts are the confirmed counts as of 2024)
+- `orbit` — Kepler's third law (`orbit a 1.524` = 1.881 Earth years,
+  687.2 days, not 1.524 years; `orbit p 11.86` = 5.201 AU, not
+  11.86 AU; `kepler` works as an alias trigger)
+- `lighttime` — light travel time (`lighttime mars` = 12.67 minutes;
+  `lighttime 1 au` = 8.317 minutes; `lighttime 8 min` =
+  143,900,380 km, not scientific notation; `lighttime 1 ly` =
+  365.3 days; planet figures use mean distance)
+- `star` — nearest stars (`star sirius` = 8.6 light-years, 2.637
+  parsecs, not 8.6 parsecs; `star proxima centauri` = 4.246 ly;
+  `stars` works as an alias trigger)
+- `gravity` — weight on another world (`gravity 80kg mars` =
+  30.4 kg; `gravity 176lb moon` = 29.92 lb; `gravity jupiter` =
+  2.53x with the gas-giant 1-bar caveat; the `weight` and `light`
+  aliases were deliberately NOT taken — they belong to the
+  physics skills)
+- `scope` — telescope magnification (`scope 1200 25` = 48x;
+  `scope 1200 25 150` = 48x, max useful 300x, exit pupil 3.125 mm;
+  `scope 1200 3 150` = 400x is flagged past the useful limit, while
+  exactly 300x is not; `telescope` works as an alias trigger)
+- `season` — approximate equinox and solstice dates
+  (`season 2026` = Mar 21, Jun 21, Sep 23, Dec 22, each within a
+  day of the real date; `seasons`, `equinox` and `solstice` work
+  as alias triggers; southern hemisphere reversal noted)
+
+All skill-count assertions in `tests/` now expect 183.
+
 ## v2.35.0 (2026-11-24) — biology skills
 
 **7 new keyless skills** (176 total) in `skills/biology.py`:
