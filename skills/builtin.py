@@ -46,12 +46,28 @@ _ALLOWED_FUNCS = {
 }
 
 
+# Largest integer result the calculator will produce (4096 bits ~= 1233
+# decimal digits). Without a bound, a tower like 9**9**9 makes CPython
+# grind on a ~370M-digit integer and wedges the worker indefinitely.
+_MAX_RESULT_BITS = 4096
+
+
 def _safe_eval(expr: str) -> float:
     """Evaluate an arithmetic expression with zero eval/exec. Raises ValueError on junk."""
     try:
         tree = ast.parse(expr, mode="eval")
     except SyntaxError as exc:
         raise ValueError(f"not a valid expression: {expr!r}") from exc
+
+    def _check_pow_size(base, exp) -> None:
+        # Reject a power before computing it: an int power's result has
+        # about exp * log2(|base|) bits, so a tower exponent explodes
+        # before operator.pow even starts. Float bases are O(1) to raise
+        # (overflow surfaces as inf/OverflowError, handled below).
+        if (isinstance(base, int) and isinstance(exp, int)
+                and abs(base) > 1 and exp > 0
+                and exp * max(1, abs(base).bit_length()) > _MAX_RESULT_BITS):
+            raise ValueError("result too large")
 
     def _node(node: ast.AST):
         if isinstance(node, ast.Expression):
@@ -64,7 +80,16 @@ def _safe_eval(expr: str) -> float:
             op = _ALLOWED_BINOPS.get(type(node.op))
             if op is None:
                 raise ValueError(f"operator {type(node.op).__name__} not allowed")
-            return op(_node(node.left), _node(node.right))
+            left = _node(node.left)
+            right = _node(node.right)
+            if isinstance(node.op, ast.Pow):
+                _check_pow_size(left, right)
+            result = op(left, right)
+            if isinstance(result, int) and result.bit_length() > _MAX_RESULT_BITS:
+                raise ValueError("result too large")
+            if isinstance(result, float) and not math.isfinite(result):
+                raise ValueError("result too large")
+            return result
         if isinstance(node, ast.UnaryOp):
             op = _ALLOWED_UNARYOPS.get(type(node.op))
             if op is None:
@@ -490,8 +515,10 @@ def _run_todo(trigger: str, args: str) -> str:
         _save_json(TODOS_FILE, todos)
         return f"Removed: {removed['text']}"
 
-    # bare text after "todo" = add it
+    # bare text after "todo" = add it (same MAX_TODOS cap as `todo add`)
     if args and action not in ("add", "list", "done", "clear", "del"):
+        if len(todos) >= MAX_TODOS:
+            return f"Todo list is full ({MAX_TODOS}). Clear done ones with `todo clear`."
         todos.append({"text": args[:200], "done": False})
         _save_json(TODOS_FILE, todos)
         return f"Added: {args[:200]} ({len(todos)} total)."

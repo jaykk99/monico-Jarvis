@@ -166,11 +166,18 @@ def _run_savings(trigger: str, args: str) -> str:
     months = math.ceil((target - have) / monthly)
     today = date.today()
     total_months = (today.year * 12 + today.month - 1) + months
-    finish = date(total_months // 12, total_months % 12 + 1, 1)
     years, rem_months = divmod(months, 12)
     span = f"{months} months" if years == 0 else (
         f"{years} year{'s' if years > 1 else ''}"
         + (f" {rem_months} months" if rem_months else ""))
+    finish_year = total_months // 12
+    if finish_year > 9999:
+        # date() caps at year 9999; a tiny monthly amount is still a valid
+        # question, so answer with the span instead of erroring out.
+        return (f"Saving {_money(monthly)}/month toward {_money(target)} "
+                f"({_money(have)} already saved): {span} — too far out "
+                f"for a calendar date.")
+    finish = date(finish_year, total_months % 12 + 1, 1)
     return (f"Saving {_money(monthly)}/month toward {_money(target)} "
             f"({_money(have)} already saved): {span} — "
             f"goal reached around {finish.strftime('%Y-%m')}.")

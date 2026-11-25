@@ -110,12 +110,18 @@ def _parse_rh(token: str) -> float | None:
 def _dewpoint_c(temp_c: float, rh: float) -> float:
     """Dew point in Celsius (Magnus formula, a=17.27, b=237.7)."""
     a, b = 17.27, 237.7
+    if abs(b + temp_c) < 1e-9:
+        # The Magnus formula has a pole at -237.7 C; that temperature is
+        # physically reachable, so say so instead of dividing by zero.
+        raise ValueError("dew point is undefined at -237.7 C")
     alpha = (a * temp_c) / (b + temp_c) + math.log(rh / 100.0)
     return (b * alpha) / (a - alpha)
 
 
 def _humidex(temp_c: float, dewpoint_c: float) -> float:
     """Canadian humidex from air temp and dew point, both Celsius."""
+    if abs(237.7 + dewpoint_c) < 1e-9:
+        raise ValueError("humidex is undefined at a -237.7 C dew point")
     vapour = 6.11 * 10.0 ** ((7.5 * dewpoint_c) / (237.7 + dewpoint_c))
     return temp_c + 0.5555 * (vapour - 10.0)
 
@@ -241,7 +247,10 @@ def _run_dewpoint(trigger: str, args: str) -> str:
     if temp is None or rh is None:
         return _USAGE_DEWPOINT
     temp_c, temp_display = temp
-    td = round(_dewpoint_c(temp_c, rh), 1)
+    try:
+        td = round(_dewpoint_c(temp_c, rh), 1)
+    except ValueError as exc:
+        return f"Can't compute a dew point there: {exc}."
     if td < 10:
         feel = "dry and comfortable — the air feels crisp."
     elif td < 13:
@@ -283,8 +292,11 @@ def _run_humidex(trigger: str, args: str) -> str:
     if temp is None or rh is None:
         return _USAGE_HUMIDEX
     temp_c, temp_display = temp
-    td = _dewpoint_c(temp_c, rh)
-    hx = round(_humidex(temp_c, td), 1)
+    try:
+        td = _dewpoint_c(temp_c, rh)
+        hx = round(_humidex(temp_c, td), 1)
+    except ValueError as exc:
+        return f"Can't compute a humidex there: {exc}."
     if hx < 30:
         band = "Comfortable — little to no discomfort."
     elif hx < 40:
