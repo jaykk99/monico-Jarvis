@@ -44,6 +44,48 @@ def _save_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
+def _clean_reminders(raw) -> list[dict]:
+    """Keep only well-formed reminder entries (numeric due_at, text)."""
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for r in raw:
+        if not isinstance(r, dict):
+            continue
+        due_at = r.get("due_at")
+        if isinstance(due_at, bool) or not isinstance(due_at, (int, float)):
+            continue
+        if "text" not in r:
+            continue
+        out.append({"text": str(r["text"])[:200], "due_at": due_at,
+                    "set_at": r.get("set_at", due_at)})
+    return out
+
+
+def _coerce_stopwatch_state(raw) -> dict:
+    """Coerce a loaded stopwatch state to safe types; corrupt values reset
+    to defaults instead of crashing the skill."""
+    if not isinstance(raw, dict):
+        return {}
+    state: dict = {}
+    # only a real JSON true counts as running; a corrupt truthy value
+    # ("yes", 1, ...) would otherwise fake a running stopwatch with a
+    # bogus start time.
+    state["running"] = raw.get("running") is True
+    for key in ("elapsed", "started_at"):
+        try:
+            state[key] = float(raw.get(key, 0.0))
+        except (TypeError, ValueError):
+            state[key] = 0.0
+    laps = raw.get("laps", [])
+    if not isinstance(laps, list):
+        laps = []
+    state["laps"] = [{"lap": int(l.get("lap", i + 1)), "at": float(l.get("at", 0.0))}
+                     for i, l in enumerate(laps)
+                     if isinstance(l, dict)]
+    return state
+
+
 _DURATION_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*([smhd])\s*$", re.IGNORECASE)
 _DURATION_SECS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 
@@ -70,7 +112,7 @@ def _fmt_hms(total_secs: float) -> str:
 
 def _run_stopwatch(trigger: str, args: str) -> str:
     action = (args or "").strip().lower()
-    state = _load_json(STOPWATCH_FILE, {})
+    state = _coerce_stopwatch_state(_load_json(STOPWATCH_FILE, {}))
     running = bool(state.get("running"))
     elapsed_base = float(state.get("elapsed", 0.0))
     started_at = float(state.get("started_at", 0.0))
@@ -125,7 +167,10 @@ def _run_stopwatch(trigger: str, args: str) -> str:
 def _run_remind(trigger: str, args: str) -> str:
     args = (args or "").strip()
     if trigger in ("reminders",) or not args or args.lower() in ("list", "ls"):
-        reminders = _load_json(REMINDERS_FILE, [])
+        raw = _load_json(REMINDERS_FILE, [])
+        reminders = _clean_reminders(raw)
+        if len(reminders) != len(raw if isinstance(raw, list) else []):
+            _save_json(REMINDERS_FILE, reminders)  # self-heal a corrupt store
         now = _time.time()
         if not reminders:
             return ("No reminders. Set one with `remind 30m call mom`.\n"
@@ -150,7 +195,7 @@ def _run_remind(trigger: str, args: str) -> str:
     if secs > 86400 * 30:
         return "Max reminder is 30 days out."
     text = parts[1].strip()[:200]
-    reminders = _load_json(REMINDERS_FILE, [])
+    reminders = _clean_reminders(_load_json(REMINDERS_FILE, []))
     if len(reminders) >= MAX_REMINDERS:
         return f"Reminder list is full ({MAX_REMINDERS}). Clear old ones with `remind clear`."
     due_at = _time.time() + secs

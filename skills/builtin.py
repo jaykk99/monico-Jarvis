@@ -45,6 +45,10 @@ _ALLOWED_FUNCS = {
     "abs": abs, "round": round, "floor": math.floor, "ceil": math.ceil,
 }
 
+# Largest integer power result we will compute (digits). Python refuses to
+# print ints over 4300 digits anyway, so anything bigger is unusable output.
+_MAX_POW_DIGITS = 4000
+
 
 def _safe_eval(expr: str) -> float:
     """Evaluate an arithmetic expression with zero eval/exec. Raises ValueError on junk."""
@@ -64,7 +68,21 @@ def _safe_eval(expr: str) -> float:
             op = _ALLOWED_BINOPS.get(type(node.op))
             if op is None:
                 raise ValueError(f"operator {type(node.op).__name__} not allowed")
-            return op(_node(node.left), _node(node.right))
+            left = _node(node.left)
+            right = _node(node.right)
+            if isinstance(node.op, ast.Pow):
+                # int**int with a huge exponent hangs the process building a
+                # multi-hundred-million-digit result (e.g. `9**9**9`), and
+                # anything over ~4300 digits can't even be printed. Refuse
+                # before computing. Floats overflow to OverflowError, caught
+                # by the caller.
+                if (isinstance(left, int) and isinstance(right, int)
+                        and not isinstance(left, bool)
+                        and abs(left) > 1 and right > 0
+                        and right * math.log10(abs(left)) > _MAX_POW_DIGITS):
+                    raise ValueError(
+                        f"result too large (over {_MAX_POW_DIGITS} digits)")
+            return op(left, right)
         if isinstance(node, ast.UnaryOp):
             op = _ALLOWED_UNARYOPS.get(type(node.op))
             if op is None:
@@ -85,6 +103,26 @@ def _safe_eval(expr: str) -> float:
 
 
 def _fmt_number(value: float) -> str:
+    if isinstance(value, int) and not isinstance(value, bool):
+        # f"{int:.6g}" converts through float and raises once the int is
+        # over ~308 digits, so big ints get scientific notation instead.
+        if abs(value) < 10 ** 15:
+            return str(value)
+        digits = str(abs(value))
+        exp10 = len(digits) - 1
+        # round (not truncate) to 6 significant digits, like %.6g
+        head = digits[:7]
+        if len(head) == 7 and head[6] >= "5":
+            rounded = str(int(head[:6]) + 1)
+            if len(rounded) == 7:  # carry, e.g. 999999 -> 1000000
+                rounded = rounded[:6]
+                exp10 += 1
+        else:
+            rounded = head[:6]
+        frac = rounded[1:].rstrip("0")
+        mantissa = rounded[0] + ("." + frac if frac else "")
+        sign = "-" if value < 0 else ""
+        return f"{sign}{mantissa}e+{exp10}"
     if isinstance(value, float) and value.is_integer():
         return str(int(value))
     return f"{value:.6g}"
@@ -122,6 +160,33 @@ def _load_json(path: Path, default):
 def _save_json(path: Path, data) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+def _clean_todos(raw) -> list[dict]:
+    """Keep only well-formed todo entries; drop corrupt rows (e.g. a hand-
+    edited todos.json with strings/numbers in it) instead of crashing."""
+    if not isinstance(raw, list):
+        return []
+    return [{"text": str(t["text"])[:200], "done": bool(t.get("done"))}
+            for t in raw
+            if isinstance(t, dict) and "text" in t]
+
+
+def _clean_timers(raw) -> list[dict]:
+    """Keep only well-formed timer entries (numeric ends_at, text label)."""
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for t in raw:
+        if not isinstance(t, dict):
+            continue
+        ends_at = t.get("ends_at")
+        if isinstance(ends_at, bool) or not isinstance(ends_at, (int, float)):
+            continue
+        out.append({"label": str(t.get("label", "timer"))[:80],
+                    "ends_at": ends_at,
+                    "set_at": t.get("set_at", ends_at)})
+    return out
 
 
 # ---------------------------------------------------------------- skill handlers (trigger, args) -> reply
@@ -225,7 +290,10 @@ def _fmt_duration(total_secs: float) -> str:
 def _run_timer(trigger: str, args: str) -> str:
     args = args.strip()
     if trigger in ("timers",) or not args:
-        timers = _load_json(TIMERS_FILE, [])
+        raw = _load_json(TIMERS_FILE, [])
+        timers = _clean_timers(raw)
+        if len(timers) != len(raw if isinstance(raw, list) else []):
+            _save_json(TIMERS_FILE, timers)  # self-heal a corrupt store
         now = _time.time()
         lines = []
         for t in timers:
@@ -247,7 +315,7 @@ def _run_timer(trigger: str, args: str) -> str:
     if secs > 86400 * 7:
         return "Max timer is 7 days."
     label = parts[1].strip() if len(parts) > 1 else f"{parts[0]} timer"
-    timers = _load_json(TIMERS_FILE, [])
+    timers = _clean_timers(_load_json(TIMERS_FILE, []))
     ends_at = _time.time() + secs
     timers.append({"label": label[:80], "ends_at": ends_at, "set_at": _time.time()})
     _save_json(TIMERS_FILE, timers)
@@ -439,7 +507,10 @@ def _run_convert(trigger: str, args: str) -> str:
 
 def _run_todo(trigger: str, args: str) -> str:
     args = args.strip()
-    todos = _load_json(TODOS_FILE, [])
+    raw = _load_json(TODOS_FILE, [])
+    todos = _clean_todos(raw)
+    if len(todos) != len(raw if isinstance(raw, list) else []):
+        _save_json(TODOS_FILE, todos)  # self-heal a corrupt store
     if trigger == "todos" and not args:
         args = "list"
     parts = args.split(None, 1)
@@ -492,6 +563,8 @@ def _run_todo(trigger: str, args: str) -> str:
 
     # bare text after "todo" = add it
     if args and action not in ("add", "list", "done", "clear", "del"):
+        if len(todos) >= MAX_TODOS:
+            return f"Todo list is full ({MAX_TODOS}). Clear done ones with `todo clear`."
         todos.append({"text": args[:200], "done": False})
         _save_json(TODOS_FILE, todos)
         return f"Added: {args[:200]} ({len(todos)} total)."

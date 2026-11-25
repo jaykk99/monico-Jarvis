@@ -89,6 +89,14 @@ def _check_rate_limit(request: Request) -> None:
         return
     ip = request.client.host if request.client else "unknown"
     now = _time.monotonic()
+    # Prune buckets for IPs not seen in the last minute, so the per-IP map
+    # can't grow without bound over the process lifetime. Only sweep when
+    # the map is large, to keep the common path O(1).
+    if len(_rate_buckets) > 512:
+        stale = [k for k, b in _rate_buckets.items()
+                 if not b or b[-1] <= now - 60]
+        for k in stale:
+            del _rate_buckets[k]
     bucket = _rate_buckets[ip]
     while bucket and bucket[0] <= now - 60:
         bucket.popleft()
